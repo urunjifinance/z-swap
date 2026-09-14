@@ -1,0 +1,218 @@
+// Z-Swap Prisma schema — production uses Postgres.
+//
+// NOTE: Fields that would naturally be enums (Role, VerificationStatus,
+// SwapStatus, etc.) are modeled as String with the allowed values
+// documented in a comment above each field, rather than native Prisma
+// `enum` blocks. This was originally done for SQLite compatibility during
+// local development (SQLite has no native enum support) and left as-is
+// here since it works identically on Postgres and keeps local/production
+// schemas in sync. The Zod schemas in the API routes (app/api/**/route.ts)
+// validate against these same allowed values, enforcing data integrity at
+// the application layer.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String   @id @default(cuid())
+  // Role: "WORKER" | "ADMIN"
+  role                String   @default("WORKER")
+
+  // Step 1 — Personal details
+  fullName            String
+  nrcNumber           String   @unique
+  dateOfBirth         DateTime
+  gender              String
+  photoUrl            String?
+  phone               String   @unique
+  email               String   @unique
+  altPhone            String?
+  physicalAddress     String?
+  passwordHash        String
+
+  // Step 2 — Department
+  departmentId        String
+  department          Department @relation(fields: [departmentId], references: [id])
+
+  // Step 3 — Job details (kept flexible for department-specific fields)
+  jobTitle             String
+  salaryScale          String
+  employmentNumber     String?
+  dateFirstAppointed   DateTime?
+  currentStationName   String
+  stationType          String?             // school type / facility type / unit
+  yearsOfService       Int                 @default(0)
+  qualification        String?
+  teachingSubjects     String?
+
+  // Step 4 — Current location
+  currentProvince      String
+  currentDistrict      String
+  currentConstituency  String?
+  currentWard          String?
+  areaClassification   String?             // Rural / Peri-urban / Urban
+
+  // Step 5 — Preferred swap locations
+  desiredProvinces     String              // JSON-encoded array, up to 3
+  desiredDistricts     String              // JSON-encoded array, up to 5
+  desiredStation       String?
+  willingToMove        String?             // Rural only / Urban only / Anywhere
+  swapReason           String?
+  swapReasonOther      String?
+  // Urgency: "LOW" | "MEDIUM" | "HIGH" | "VERY_HIGH"
+  urgency              String              @default("MEDIUM")
+  earliestAvailable    DateTime?
+
+  // Step 6 — Incentive
+  // IncentivePreference: "WANT" | "OFFER" | "NONE" | "NEGOTIATE"
+  incentivePreference  String              @default("NONE")
+  incentiveAmountMin   Int?
+  incentiveAmountMax   Int?
+  incentiveTerms       String?
+
+  // Step 7 — Contacts & emergency
+  whatsapp             String?
+  emergencyName        String?
+  emergencyPhone       String?
+  emergencyRelation    String?
+
+  // Step 8 — Verification documents
+  nrcDocUrl            String?
+  payslipDocUrl        String?
+  employmentLetterUrl  String?
+  certificateUrl       String?
+  selfieUrl            String?
+  agreedToTerms        Boolean             @default(false)
+  consentSharedProfile Boolean             @default(false)
+
+  // VerificationStatus: "PENDING" | "VERIFIED" | "REJECTED"
+  verificationStatus   String              @default("PENDING")
+  mostWanted           Boolean             @default(false)
+
+  swapRequests         SwapRequest[]
+  sentMessages         Message[]           @relation("SentMessages")
+  paymentsAsUser       Payment[]
+  reportsMade          Report[]            @relation("ReportsMade")
+  reportsReceived      Report[]            @relation("ReportsReceived")
+  notifications        Notification[]
+
+  createdAt            DateTime            @default(now())
+  updatedAt             DateTime           @updatedAt
+}
+
+model Department {
+  id       String   @id
+  name     String   @unique
+  icon     String
+  color    String
+  category String
+  users    User[]
+}
+
+model SwapRequest {
+  id                String      @id @default(cuid())
+  userId            String
+  user              User        @relation(fields: [userId], references: [id])
+  // SwapStatus: "PENDING" | "MATCHED" | "IN_NEGOTIATION" | "COMPLETED" | "CANCELLED"
+  status            String      @default("PENDING")
+
+  currentStation    String
+  currentDistrict   String
+  currentProvince   String
+  desiredStation    String?
+  desiredDistrict   String
+  desiredProvince   String
+
+  ministry          String
+  cadre             String
+  // UrgencyLevel: "LOW" | "MEDIUM" | "HIGH" | "VERY_HIGH"
+  urgency           String
+  reason            String
+
+  // IncentivePreference: "WANT" | "OFFER" | "NONE" | "NEGOTIATE"
+  incentivePreference String
+  incentiveAmount     Int?
+  incentiveTerms      String?
+
+  matches           Match[]     @relation("RequestA")
+  matchedWith       Match[]     @relation("RequestB")
+  payment           Payment?
+
+  createdAt         DateTime    @default(now())
+  updatedAt          DateTime   @updatedAt
+}
+
+model Match {
+  id            String       @id @default(cuid())
+  requestAId    String
+  requestA      SwapRequest  @relation("RequestA", fields: [requestAId], references: [id])
+  requestBId    String
+  requestB      SwapRequest  @relation("RequestB", fields: [requestBId], references: [id])
+  matchScore    Int
+  createdAt     DateTime     @default(now())
+  chat          Chat?
+}
+
+model Chat {
+  id         String    @id @default(cuid())
+  matchId    String    @unique
+  match      Match     @relation(fields: [matchId], references: [id])
+  messages   Message[]
+  createdAt  DateTime  @default(now())
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  chatId     String
+  chat       Chat     @relation(fields: [chatId], references: [id])
+  senderId   String
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+  content    String
+  fileUrl    String?
+  readAt     DateTime?
+  createdAt  DateTime @default(now())
+}
+
+model Payment {
+  id             String        @id @default(cuid())
+  userId         String
+  user           User          @relation(fields: [userId], references: [id])
+  swapRequestId  String?       @unique
+  swapRequest    SwapRequest?  @relation(fields: [swapRequestId], references: [id])
+  amount         Int           @default(150) // ZMW, non-refundable request fee
+  // PaymentMethod: "AIRTEL_MONEY" | "MTN_MONEY" | "ZAMTEL_MONEY" | "CARD" | "BANK_TRANSFER"
+  method         String
+  // PaymentStatus: "PENDING" | "SUCCESS" | "FAILED"
+  status         String        @default("PENDING")
+  txnId          String        @unique
+  createdAt      DateTime      @default(now())
+}
+
+model Report {
+  id           String   @id @default(cuid())
+  reporterId   String
+  reporter     User     @relation("ReportsMade", fields: [reporterId], references: [id])
+  reportedId   String
+  reported     User     @relation("ReportsReceived", fields: [reportedId], references: [id])
+  reason       String
+  details      String?
+  resolved     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  type      String   // match | message | payment | verification | announcement
+  title     String
+  body      String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
