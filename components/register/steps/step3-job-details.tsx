@@ -2,7 +2,7 @@
 
 import { toast } from "sonner";
 import { useRegistrationStore } from "@/lib/stores/registration-store";
-import { getSalaryScales, getJobTitles, SCHOOL_TYPES, FACILITY_TYPES, QUALIFICATIONS, DEPARTMENTS } from "@/lib/data/departments";
+import { getJobTitles, SCHOOL_TYPES, FACILITY_TYPES, QUALIFICATIONS, DEPARTMENTS } from "@/lib/data/departments";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
@@ -12,7 +12,6 @@ export function Step3JobDetails() {
   const { data, update } = useRegistrationStore();
   const deptId = data.departmentId;
   const dept = DEPARTMENTS.find((d) => d.id === deptId);
-  const salaryScales = getSalaryScales(deptId);
   const jobTitles = getJobTitles(deptId);
 
   const isEducation = deptId === "moe" || deptId === "tsc";
@@ -38,12 +37,12 @@ export function Step3JobDetails() {
       <div className="grid gap-5 md:grid-cols-2">
         <div>
           <Label>{isPolice || isDefence ? "Rank" : "Salary scale"}</Label>
-          <Select className="mt-1.5" value={data.salaryScale} onChange={(e) => update({ salaryScale: e.target.value })}>
-            <option value="">Select</option>
-            {salaryScales.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </Select>
+          <Input
+            className="mt-1.5"
+            value={data.salaryScale}
+            onChange={(e) => update({ salaryScale: e.target.value })}
+            placeholder={isPolice || isDefence ? "e.g. Sergeant" : "e.g. TSS-4, HSS-6, CS-9"}
+          />
         </div>
 
         <div>
@@ -62,11 +61,6 @@ export function Step3JobDetails() {
             <Input className="mt-1.5" value={data.jobTitleOther} onChange={(e) => update({ jobTitleOther: e.target.value })} />
           </div>
         )}
-
-        <div>
-          <Label>{isPolice ? "Force number" : isDefence ? "Service number" : "Employment / Payroll number"}</Label>
-          <Input className="mt-1.5" value={data.employmentNumber} onChange={(e) => update({ employmentNumber: e.target.value })} />
-        </div>
 
         {!isPolice && !isDefence && (
           <div>

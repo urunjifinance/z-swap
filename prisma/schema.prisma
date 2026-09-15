@@ -43,7 +43,6 @@ model User {
   // Step 3 — Job details (kept flexible for department-specific fields)
   jobTitle             String
   salaryScale          String
-  employmentNumber     String?
   dateFirstAppointed   DateTime?
   currentStationName   String
   stationType          String?             // school type / facility type / unit
@@ -54,8 +53,6 @@ model User {
   // Step 4 — Current location
   currentProvince      String
   currentDistrict      String
-  currentConstituency  String?
-  currentWard          String?
   areaClassification   String?             // Rural / Peri-urban / Urban
 
   // Step 5 — Preferred swap locations
@@ -84,9 +81,6 @@ model User {
 
   // Step 8 — Verification documents
   nrcDocUrl            String?
-  payslipDocUrl        String?
-  employmentLetterUrl  String?
-  certificateUrl       String?
   selfieUrl            String?
   agreedToTerms        Boolean             @default(false)
   consentSharedProfile Boolean             @default(false)

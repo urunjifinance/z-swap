@@ -28,11 +28,10 @@ const statusColor: Record<string, "pending" | "success" | "warning" | "secondary
 function profileCompletion(user: {
   photoUrl: string | null;
   physicalAddress: string | null;
-  certificateUrl: string | null;
   whatsapp: string | null;
   emergencyName: string | null;
 }) {
-  const fields = [user.photoUrl, user.physicalAddress, user.certificateUrl, user.whatsapp, user.emergencyName];
+  const fields = [user.photoUrl, user.physicalAddress, user.whatsapp, user.emergencyName];
   const filled = fields.filter(Boolean).length;
   return Math.round(20 + (filled / fields.length) * 80); // base 20% for having an account at all
 }

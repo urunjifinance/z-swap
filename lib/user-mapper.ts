@@ -34,7 +34,6 @@ export interface DbUserLike {
   fullName: string;
   photoUrl?: string | null;
   nrcNumber: string;
-  employmentNumber?: string | null;
   departmentId: string;
   jobTitle: string;
   salaryScale: string;
@@ -58,7 +57,7 @@ export function dbUserToSampleUser(u: DbUserLike): SampleUser {
     name: u.fullName,
     photo: u.photoUrl || `https://i.pravatar.cc/150?u=${u.id}`,
     nrc: u.nrcNumber,
-    employeeId: u.employmentNumber || "",
+    employeeId: "",
     departmentId: u.departmentId,
     jobTitle: u.jobTitle,
     salaryScale: u.salaryScale,

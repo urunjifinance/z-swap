@@ -22,7 +22,6 @@ export interface RegistrationData {
   salaryScale: string;
   jobTitle: string;
   jobTitleOther: string;
-  employmentNumber: string;
   dateFirstAppointed: string;
   currentStationName: string;
   stationType: string;
@@ -33,8 +32,6 @@ export interface RegistrationData {
   // Step 4 — Current location
   currentProvince: string;
   currentDistrict: string;
-  currentConstituency: string;
-  currentWard: string;
   areaClassification: string;
 
   // Step 5 — Preferred swap locations
@@ -62,9 +59,6 @@ export interface RegistrationData {
 
   // Step 8 — Documents
   nrcDocName: string;
-  payslipDocName: string;
-  employmentLetterName: string;
-  certificateName: string;
   selfieName: string;
   agreedToTerms: boolean;
   consentSharedProfile: boolean;
@@ -89,7 +83,6 @@ const initialData: RegistrationData = {
   salaryScale: "",
   jobTitle: "",
   jobTitleOther: "",
-  employmentNumber: "",
   dateFirstAppointed: "",
   currentStationName: "",
   stationType: "",
@@ -99,8 +92,6 @@ const initialData: RegistrationData = {
 
   currentProvince: "",
   currentDistrict: "",
-  currentConstituency: "",
-  currentWard: "",
   areaClassification: "",
 
   desiredProvinces: [],
@@ -124,9 +115,6 @@ const initialData: RegistrationData = {
   emergencyRelation: "",
 
   nrcDocName: "",
-  payslipDocName: "",
-  employmentLetterName: "",
-  certificateName: "",
   selfieName: "",
   agreedToTerms: false,
   consentSharedProfile: false,

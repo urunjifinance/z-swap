@@ -133,7 +133,6 @@ export function Step9Review() {
         <Section title="Job Details" step={3} setStep={setStep}>
           <Row label="Salary scale / Rank" value={data.salaryScale} />
           <Row label="Job title" value={data.jobTitle} />
-          <Row label="Employment number" value={data.employmentNumber} />
           <Row label="Current station" value={data.currentStationName} />
           <Row label="Years of service" value={data.yearsOfService} />
         </Section>
@@ -161,7 +160,7 @@ export function Step9Review() {
 
         <Section title="Contacts & Documents" step={7} setStep={setStep}>
           <Row label="Emergency contact" value={data.emergencyName} />
-          <Row label="Documents uploaded" value={[data.nrcDocName, data.payslipDocName, data.employmentLetterName, data.selfieName].filter(Boolean).length + " files"} />
+          <Row label="Documents uploaded" value={[data.nrcDocName, data.selfieName].filter(Boolean).length + " files"} />
         </Section>
       </div>
 

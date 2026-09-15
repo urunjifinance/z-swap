@@ -9,9 +9,6 @@ import { StepNav } from "../step-nav";
 
 const DOCS: { key: keyof RegistrationData; label: string; required: boolean }[] = [
   { key: "nrcDocName", label: "National ID (NRC)", required: true },
-  { key: "payslipDocName", label: "Latest payslip", required: true },
-  { key: "employmentLetterName", label: "Employment letter / proof of service", required: true },
-  { key: "certificateName", label: "Professional certificate / practising licence (if applicable)", required: false },
   { key: "selfieName", label: "Selfie for identity verification", required: true },
 ];
 
@@ -51,8 +48,6 @@ export function Step8Verification() {
 
   const validate = () => {
     if (!data.nrcDocName) return toast.error("Upload your NRC document"), false;
-    if (!data.payslipDocName) return toast.error("Upload your latest payslip"), false;
-    if (!data.employmentLetterName) return toast.error("Upload your employment letter"), false;
     if (!data.selfieName) return toast.error("Upload a selfie for identity verification"), false;
     if (!data.agreedToTerms) return toast.error("You must agree to the Terms of Service"), false;
     if (!data.consentSharedProfile) return toast.error("Consent is required to share your profile with matched users"), false;

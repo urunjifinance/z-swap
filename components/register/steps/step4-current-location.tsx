@@ -60,16 +60,6 @@ export function Step4CurrentLocation() {
           </Select>
         </div>
 
-        <div>
-          <Label>Current Constituency (optional)</Label>
-          <Input className="mt-1.5" value={data.currentConstituency} onChange={(e) => update({ currentConstituency: e.target.value })} />
-        </div>
-
-        <div>
-          <Label>Current Ward (optional)</Label>
-          <Input className="mt-1.5" value={data.currentWard} onChange={(e) => update({ currentWard: e.target.value })} />
-        </div>
-
         <div className="md:col-span-2">
           <Label>Current station / school / office / facility name</Label>
           <Input
