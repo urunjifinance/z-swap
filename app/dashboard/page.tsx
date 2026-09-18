@@ -85,7 +85,16 @@ export default async function DashboardPage() {
             <StatCard icon={Receipt} label="Fees paid" value={formatZMW(revenuePaid._sum.amount ?? 0)} accent="green" />
           </div>
 
-          {!verified && (
+          {!user.registrationFeePaid && (
+            <div className="rounded-2xl border border-primary-200 bg-primary-50 p-4 text-sm text-primary-800 flex items-center justify-between gap-4 flex-wrap">
+              <span>Your registration fee hasn&apos;t been paid yet — your account can&apos;t be verified until it is.</span>
+              <Link href="/payment?context=registration" className="font-bold text-primary-700 hover:underline shrink-0">
+                Pay now →
+              </Link>
+            </div>
+          )}
+
+          {user.registrationFeePaid && !verified && (
             <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
               Your profile is pending admin verification. You can browse matches, but you&apos;ll need to be verified before posting a swap request.
             </div>

@@ -6,7 +6,10 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 const paySchema = z.object({
-  swapRequestId: z.string(),
+  // Omit swapRequestId entirely for a registration-fee payment (paid right
+  // after signup, before admin verification). Include it only for the
+  // legacy per-swap-request fee flow.
+  swapRequestId: z.string().optional(),
   method: z.enum(["AIRTEL_MONEY", "MTN_MONEY", "ZAMTEL_MONEY", "CARD", "BANK_TRANSFER"]),
   amount: z.number().default(150),
 });
@@ -15,8 +18,12 @@ function generateTxnId() {
   return "ZSW-" + nanoid(6).toUpperCase() + "-" + Date.now().toString().slice(-5);
 }
 
-// POST /api/payments — charges the non-refundable request fee for a swap
-// request.
+// POST /api/payments — charges either:
+//   (a) the non-refundable registration fee, right after signup and before
+//       admin verification (no swapRequestId in the request body), or
+//   (b) the legacy per-swap-request fee (swapRequestId included) — kept for
+//       backward compatibility, though the registration-fee flow is now the
+//       primary path.
 //
 // PRODUCTION INTEGRATION NOTES:
 // Replace the mock `simulateCharge` block below with a real call to your
@@ -33,9 +40,37 @@ export async function POST(req: NextRequest) {
 
   try {
     const data = paySchema.parse(await req.json());
+    const userId = (session.user as any).id;
 
+    // --- REGISTRATION FEE (no swapRequestId) ---
+    // Paid immediately after signup, before admin verification. Marks the
+    // account as fee-paid; verification is a separate, independent gate.
+    if (!data.swapRequestId) {
+      const txnId = generateTxnId();
+
+      const simulateCharge = async () => ({ success: true });
+      const result = await simulateCharge();
+
+      const payment = await prisma.payment.create({
+        data: {
+          userId,
+          amount: data.amount,
+          method: data.method,
+          status: result.success ? "SUCCESS" : "FAILED",
+          txnId,
+        },
+      });
+
+      if (result.success) {
+        await prisma.user.update({ where: { id: userId }, data: { registrationFeePaid: true } });
+      }
+
+      return NextResponse.json(payment, { status: 201 });
+    }
+
+    // --- LEGACY: per-swap-request fee ---
     const swapRequest = await prisma.swapRequest.findUnique({ where: { id: data.swapRequestId } });
-    if (!swapRequest || swapRequest.userId !== (session.user as any).id) {
+    if (!swapRequest || swapRequest.userId !== userId) {
       return NextResponse.json({ error: "Swap request not found" }, { status: 404 });
     }
 
@@ -48,7 +83,7 @@ export async function POST(req: NextRequest) {
 
     const payment = await prisma.payment.create({
       data: {
-        userId: (session.user as any).id,
+        userId,
         swapRequestId: data.swapRequestId,
         amount: data.amount,
         method: data.method,

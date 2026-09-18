@@ -42,6 +42,9 @@ export async function POST(req: NextRequest) {
 
   const user = await prisma.user.findUnique({ where: { id: (session.user as any).id } });
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+  if (!user.registrationFeePaid) {
+    return NextResponse.json({ error: "Your registration fee must be paid first." }, { status: 403 });
+  }
   if (user.verificationStatus !== "VERIFIED") {
     return NextResponse.json({ error: "Your profile must be verified before posting a swap request." }, { status: 403 });
   }

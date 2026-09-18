@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { PROVINCES, getDistrictsByProvinceCode } from "@/lib/data/locations";
 import { DEPARTMENTS, SWAP_REASONS, URGENCY_LEVELS, INCENTIVE_PREFERENCES } from "@/lib/data/departments";
-import { REQUEST_FEE_ZMW, SAMPLE_USERS } from "@/lib/data/sample-users";
+import { SAMPLE_USERS } from "@/lib/data/sample-users";
 
 const CURRENT_USER = SAMPLE_USERS[0];
 
@@ -39,8 +39,11 @@ export default function NewSwapRequestPage() {
       toast.error("Please complete all required fields");
       return;
     }
-    // In production: POST /api/swap-requests, then redirect using the returned id.
-    router.push("/payment?requestId=sr-new");
+    // In production: POST /api/swap-requests, then redirect using the
+    // returned id. No payment step here anymore — the registration fee
+    // (paid at signup) covers this; posting a request itself is free.
+    toast.success("Swap request posted");
+    router.push("/dashboard");
   };
 
   return (
@@ -142,16 +145,15 @@ export default function NewSwapRequestPage() {
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-primary-200 bg-primary-50 p-4 text-sm text-primary-800">
-                  A non-refundable request fee of <strong>ZMW {REQUEST_FEE_ZMW}</strong> is paid when
-                  requesting a swap. It applies whether the swap is successful or not.
+                <div className="rounded-xl border border-secondary-200 bg-secondary-50 p-4 text-sm text-secondary-800">
+                  No fee to post this request — your one-time registration fee already covers it.
                 </div>
               </CardContent>
             </Card>
 
             <div className="mt-6 flex justify-end">
               <Button size="lg" type="submit">
-                Continue to payment <ArrowRight className="h-4 w-4" />
+                Post swap request <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
           </form>

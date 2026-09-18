@@ -89,6 +89,10 @@ model User {
   verificationStatus   String              @default("PENDING")
   mostWanted           Boolean             @default(false)
 
+  // Registration fee — paid immediately on registration, before admin
+  // verification, rather than at swap-request time.
+  registrationFeePaid  Boolean             @default(false)
+
   swapRequests         SwapRequest[]
   sentMessages         Message[]           @relation("SentMessages")
   paymentsAsUser       Payment[]

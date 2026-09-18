@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { toast } from "sonner";
-import { CheckCircle2, Edit2, Loader2 } from "lucide-react";
+import { Edit2, Loader2 } from "lucide-react";
 import { useRegistrationStore } from "@/lib/stores/registration-store";
 import { DEPARTMENTS } from "@/lib/data/departments";
 import { Button } from "@/components/ui/button";
@@ -33,9 +34,8 @@ function Section({ title, step, setStep, children }: { title: string; step: numb
 }
 
 export function Step9Review() {
-  const { data, setStep, reset } = useRegistrationStore();
+  const { data, setStep } = useRegistrationStore();
   const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
   const dept = DEPARTMENTS.find((d) => d.id === data.departmentId);
@@ -78,43 +78,37 @@ export function Step9Review() {
         return;
       }
 
+      // Account created — sign them in immediately so the registration fee
+      // can be charged to an authenticated session, then send them to pay
+      // it before verification even begins.
+      const signInResult = await signIn("credentials", {
+        identifier: data.email,
+        password: data.password,
+        redirect: false,
+      });
+
       setSubmitting(false);
-      setSubmitted(true);
-      toast.success("Registration submitted for review");
+
+      if (signInResult?.error) {
+        // Account exists, but auto-login failed for some reason — send them
+        // to log in manually rather than losing the created account.
+        toast.success("Account created. Please log in to pay your registration fee.");
+        router.push("/login");
+        return;
+      }
+
+      toast.success("Account created — one more step");
+      router.push("/payment?context=registration");
     } catch (err) {
       setSubmitting(false);
       setError("Could not reach the server. Make sure the app is running and try again.");
     }
   };
 
-  if (submitted) {
-    return (
-      <div className="text-center py-10">
-        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-secondary-100 text-secondary-600">
-          <CheckCircle2 className="h-8 w-8" />
-        </div>
-        <h2 className="text-2xl font-bold text-ink mb-2">Your profile is under review</h2>
-        <p className="text-slate-600 max-w-md mx-auto mb-8">
-          You will be notified once verified. You can browse matches now, but you&apos;ll need
-          to be verified before requesting a swap.
-        </p>
-        <Button
-          size="lg"
-          onClick={() => {
-            reset();
-            router.push("/dashboard");
-          }}
-        >
-          Go to my dashboard
-        </Button>
-      </div>
-    );
-  }
-
   return (
     <div>
       <h2 className="text-2xl font-bold text-ink mb-1">Review & Submit</h2>
-      <p className="text-sm text-slate-500 mb-6">Check your details before submitting for admin verification.</p>
+      <p className="text-sm text-slate-500 mb-6">Check your details, then pay your registration fee. Admin verification happens after that.</p>
 
       <div className="space-y-4">
         <Section title="Personal Details" step={1} setStep={setStep}>
@@ -170,7 +164,7 @@ export function Step9Review() {
         </Button>
         <Button type="button" size="lg" onClick={handleSubmit} disabled={submitting}>
           {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-          {submitting ? "Submitting..." : "Submit for verification"}
+          {submitting ? "Creating account..." : "Continue to payment"}
         </Button>
       </div>
       {error && (
