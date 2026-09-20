@@ -42,15 +42,30 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           role: user.role,
           verificationStatus: user.verificationStatus,
+          registrationFeePaid: user.registrationFeePaid,
         } as any;
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.role = (user as any).role;
         token.verificationStatus = (user as any).verificationStatus;
+        token.registrationFeePaid = (user as any).registrationFeePaid;
+      }
+      // Re-read from the database after login, when the session is updated,
+      // or while the user has not paid yet.
+      if (token.sub && (trigger === "update" || token.registrationFeePaid !== true)) {
+        const u = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { role: true, verificationStatus: true, registrationFeePaid: true },
+        });
+        if (u) {
+          token.role = u.role;
+          token.verificationStatus = u.verificationStatus;
+          token.registrationFeePaid = u.registrationFeePaid;
+        }
       }
       return token;
     },
@@ -58,6 +73,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         (session.user as any).role = token.role;
         (session.user as any).verificationStatus = token.verificationStatus;
+        (session.user as any).registrationFeePaid = token.registrationFeePaid;
         (session.user as any).id = token.sub;
       }
       return session;
