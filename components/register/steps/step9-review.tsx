@@ -8,6 +8,8 @@ import { Edit2, Loader2 } from "lucide-react";
 import { useRegistrationStore } from "@/lib/stores/registration-store";
 import { DEPARTMENTS } from "@/lib/data/departments";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 function Row({ label, value }: { label: string; value?: string | number | null }) {
   if (!value) return null;
@@ -34,7 +36,7 @@ function Section({ title, step, setStep, children }: { title: string; step: numb
 }
 
 export function Step9Review() {
-  const { data, setStep } = useRegistrationStore();
+  const { data, setStep, update } = useRegistrationStore();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -67,6 +69,7 @@ export function Step9Review() {
           incentivePreference: data.incentivePreference.toUpperCase(),
           agreedToTerms: data.agreedToTerms,
           consentSharedProfile: data.consentSharedProfile,
+          promoCode: data.promoCode || undefined,
         }),
       });
 
@@ -156,6 +159,22 @@ export function Step9Review() {
           <Row label="Emergency contact" value={data.emergencyName} />
           <Row label="Documents uploaded" value={[data.nrcDocName, data.selfieName].filter(Boolean).length + " files"} />
         </Section>
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-border p-5">
+        <Label htmlFor="promoCode" className="font-bold text-ink">
+          Promo code <span className="font-normal text-slate-500">(optional)</span>
+        </Label>
+        <p className="text-xs text-slate-500 mt-1 mb-3">
+          Were you referred by someone? Enter their code here.
+        </p>
+        <Input
+          id="promoCode"
+          value={data.promoCode}
+          onChange={(e) => update({ promoCode: e.target.value.toUpperCase() })}
+          placeholder="e.g. MERON10"
+          className="uppercase"
+        />
       </div>
 
       <div className="mt-8 flex items-center justify-between border-t border-border pt-6">

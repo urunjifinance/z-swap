@@ -6,12 +6,14 @@ import { AdminSidebar } from "@/components/admin/sidebar";
 import { AdminOverview } from "@/components/admin/overview";
 import { AdminVerifications } from "@/components/admin/verifications";
 import { AdminUsers } from "@/components/admin/users-table";
+import { AdminPromoters } from "@/components/admin/promoters-table";
 import { AdminPayments, AdminDisputes } from "@/components/admin/payments-disputes";
 
 const TITLES: Record<string, string> = {
   overview: "Analytics",
   verifications: "Verification Approvals",
   users: "Users",
+  promoters: "Promoters",
   payments: "Payments & Revenue",
   disputes: "Disputes & Reports",
 };
@@ -32,6 +34,7 @@ export default function AdminPage() {
           {tab === "overview" && <AdminOverview />}
           {tab === "verifications" && <AdminVerifications />}
           {tab === "users" && <AdminUsers />}
+          {tab === "promoters" && <AdminPromoters />}
           {tab === "payments" && <AdminPayments />}
           {tab === "disputes" && <AdminDisputes />}
         </div>

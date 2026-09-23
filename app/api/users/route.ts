@@ -22,6 +22,7 @@ const registerSchema = z.object({
   incentivePreference: z.enum(["WANT", "OFFER", "NONE", "NEGOTIATE"]).default("NONE"),
   agreedToTerms: z.literal(true),
   consentSharedProfile: z.literal(true),
+  promoCode: z.string().trim().toUpperCase().optional(),
 });
 
 // POST /api/users — creates a new worker registration (Step 9 submit).
@@ -37,6 +38,17 @@ export async function POST(req: NextRequest) {
     });
     if (existing) {
       return NextResponse.json({ error: "An account with this email, phone or NRC already exists." }, { status: 409 });
+    }
+
+    let referredByCode: string | null = null;
+    if (data.promoCode) {
+      const promoter = await prisma.promoter.findUnique({
+        where: { code: data.promoCode },
+      });
+      if (!promoter || promoter.status !== "ACTIVE") {
+        return NextResponse.json({ error: "Invalid or inactive promo code." }, { status: 400 });
+      }
+      referredByCode = promoter.code;
     }
 
     const passwordHash = await bcrypt.hash(data.password, 10);
@@ -61,6 +73,7 @@ export async function POST(req: NextRequest) {
         incentivePreference: data.incentivePreference,
         agreedToTerms: data.agreedToTerms,
         consentSharedProfile: data.consentSharedProfile,
+        referredByCode,
       },
     });
 
