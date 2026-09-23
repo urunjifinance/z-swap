@@ -25,6 +25,7 @@ export function AdminPromoters() {
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -71,6 +72,23 @@ export function AdminPromoters() {
     setPayoutRate("");
     setShowForm(false);
     load();
+  };
+
+  const handleToggleStatus = async (id: string, currentStatus: string) => {
+    setTogglingId(id);
+    const newStatus = currentStatus === "ACTIVE" ? "DISABLED" : "ACTIVE";
+
+    const res = await fetch(`/api/admin/promoters/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: newStatus }),
+    });
+
+    setTogglingId(null);
+
+    if (res.ok) {
+      load();
+    }
   };
 
   return (
@@ -141,19 +159,20 @@ export function AdminPromoters() {
                 <th className="text-left px-4 py-3 font-semibold">Paid referrals</th>
                 <th className="text-left px-4 py-3 font-semibold">Total signups</th>
                 <th className="text-left px-4 py-3 font-semibold">Status</th>
+                <th className="text-left px-4 py-3 font-semibold"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {loading && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-6 text-center text-slate-400">
+                  <td colSpan={8} className="px-4 py-6 text-center text-slate-400">
                     Loading...
                   </td>
                 </tr>
               )}
               {!loading && promoters.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-6 text-center text-slate-400">
+                  <td colSpan={8} className="px-4 py-6 text-center text-slate-400">
                     No promoters yet.
                   </td>
                 </tr>
@@ -168,6 +187,23 @@ export function AdminPromoters() {
                   <td className="px-4 py-3 text-slate-600">{p.totalReferrals}</td>
                   <td className="px-4 py-3">
                     <Badge variant={p.status === "ACTIVE" ? "success" : "pending"}>{p.status}</Badge>
+                  </td>
+                  <td className="px-4 py-3">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleToggleStatus(p.id, p.status)}
+                      disabled={togglingId === p.id}
+                    >
+                      {togglingId === p.id ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : p.status === "ACTIVE" ? (
+                        "Deactivate"
+                      ) : (
+                        "Activate"
+                      )}
+                    </Button>
                   </td>
                 </tr>
               ))}
