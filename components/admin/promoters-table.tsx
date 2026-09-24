@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, Pencil, Check, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,11 +12,13 @@ interface Promoter {
   name: string;
   phone: string | null;
   code: string;
-  payoutRate: number;
+  payoutRate: number; // % of the registration fee
   status: string;
   createdAt: string;
   paidReferrals: number;
   totalReferrals: number;
+  amountPerReferral: number;
+  amountOwed: number;
 }
 
 export function AdminPromoters() {
@@ -31,6 +33,10 @@ export function AdminPromoters() {
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
   const [payoutRate, setPayoutRate] = useState("");
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editRate, setEditRate] = useState("");
+  const [savingRate, setSavingRate] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -85,8 +91,33 @@ export function AdminPromoters() {
     });
 
     setTogglingId(null);
+    if (res.ok) load();
+  };
+
+  const startEditRate = (p: Promoter) => {
+    setEditingId(p.id);
+    setEditRate(String(p.payoutRate));
+  };
+
+  const cancelEditRate = () => {
+    setEditingId(null);
+    setEditRate("");
+  };
+
+  const saveRate = async (id: string) => {
+    const rate = Number(editRate);
+    if (isNaN(rate) || rate < 0 || rate > 100) return;
+
+    setSavingRate(true);
+    const res = await fetch(`/api/admin/promoters/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ payoutRate: rate }),
+    });
+    setSavingRate(false);
 
     if (res.ok) {
+      setEditingId(null);
       load();
     }
   };
@@ -95,7 +126,8 @@ export function AdminPromoters() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-slate-500">
-          Marketers with a unique code that tracks which paid users they referred.
+          Marketers with a unique code that tracks which paid users they referred. Rate is a % of the
+          registration fee — the ZMW amount per referral updates automatically if the fee changes.
         </p>
         <Button type="button" onClick={() => setShowForm((s) => !s)}>
           <Plus className="h-4 w-4" /> Add promoter
@@ -119,17 +151,19 @@ export function AdminPromoters() {
                 <Input
                   value={code}
                   onChange={(e) => setCode(e.target.value.toUpperCase())}
-                  placeholder="e.g. MERON10"
+                  placeholder="e.g. MUN10"
                   className="uppercase"
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-500">Payout rate (ZMW per paid referral)</label>
+                <label className="text-xs font-semibold text-slate-500">Payout rate (% of registration fee)</label>
                 <Input
                   type="number"
+                  min={0}
+                  max={100}
                   value={payoutRate}
                   onChange={(e) => setPayoutRate(e.target.value)}
-                  placeholder="e.g. 20"
+                  placeholder="e.g. 35"
                 />
               </div>
             </div>
@@ -155,8 +189,10 @@ export function AdminPromoters() {
                 <th className="text-left px-4 py-3 font-semibold">Name</th>
                 <th className="text-left px-4 py-3 font-semibold">Code</th>
                 <th className="text-left px-4 py-3 font-semibold">Phone</th>
-                <th className="text-left px-4 py-3 font-semibold">Payout rate</th>
+                <th className="text-left px-4 py-3 font-semibold">Rate</th>
+                <th className="text-left px-4 py-3 font-semibold">Per referral</th>
                 <th className="text-left px-4 py-3 font-semibold">Paid referrals</th>
+                <th className="text-left px-4 py-3 font-semibold">Amount owed</th>
                 <th className="text-left px-4 py-3 font-semibold">Total signups</th>
                 <th className="text-left px-4 py-3 font-semibold">Status</th>
                 <th className="text-left px-4 py-3 font-semibold"></th>
@@ -165,14 +201,14 @@ export function AdminPromoters() {
             <tbody className="divide-y divide-border">
               {loading && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-6 text-center text-slate-400">
+                  <td colSpan={10} className="px-4 py-6 text-center text-slate-400">
                     Loading...
                   </td>
                 </tr>
               )}
               {!loading && promoters.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-6 text-center text-slate-400">
+                  <td colSpan={10} className="px-4 py-6 text-center text-slate-400">
                     No promoters yet.
                   </td>
                 </tr>
@@ -182,8 +218,34 @@ export function AdminPromoters() {
                   <td className="px-4 py-3 font-semibold text-ink">{p.name}</td>
                   <td className="px-4 py-3 font-mono text-primary-700">{p.code}</td>
                   <td className="px-4 py-3 text-slate-600">{p.phone || "—"}</td>
-                  <td className="px-4 py-3 text-slate-600">K{p.payoutRate}</td>
+                  <td className="px-4 py-3 text-slate-600">
+                    {editingId === p.id ? (
+                      <div className="flex items-center gap-1">
+                        <Input
+                          type="number"
+                          min={0}
+                          max={100}
+                          value={editRate}
+                          onChange={(e) => setEditRate(e.target.value)}
+                          className="w-16 h-7 px-2"
+                        />
+                        <span className="text-xs">%</span>
+                        <button onClick={() => saveRate(p.id)} disabled={savingRate} className="text-secondary-600 p-1">
+                          {savingRate ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                        </button>
+                        <button onClick={cancelEditRate} className="text-slate-400 p-1">
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button onClick={() => startEditRate(p)} className="flex items-center gap-1.5 hover:text-primary-600">
+                        {p.payoutRate}% <Pencil className="h-3 w-3 opacity-50" />
+                      </button>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-slate-600">K{p.amountPerReferral}</td>
                   <td className="px-4 py-3 font-semibold text-ink">{p.paidReferrals}</td>
+                  <td className="px-4 py-3 font-semibold text-ink">K{p.amountOwed}</td>
                   <td className="px-4 py-3 text-slate-600">{p.totalReferrals}</td>
                   <td className="px-4 py-3">
                     <Badge variant={p.status === "ACTIVE" ? "success" : "pending"}>{p.status}</Badge>
