@@ -12,7 +12,7 @@ interface Promoter {
   name: string;
   phone: string | null;
   code: string;
-  payoutRate: number; // % of the registration fee
+  payoutRate: number;
   status: string;
   createdAt: string;
   paidReferrals: number;
@@ -84,10 +84,10 @@ export function AdminPromoters() {
     setTogglingId(id);
     const newStatus = currentStatus === "ACTIVE" ? "DISABLED" : "ACTIVE";
 
-    const res = await fetch(`/api/admin/promoters/${id}`, {
+    const res = await fetch("/api/admin/promoters", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: newStatus }),
+      body: JSON.stringify({ id, status: newStatus }),
     });
 
     setTogglingId(null);
@@ -109,10 +109,10 @@ export function AdminPromoters() {
     if (isNaN(rate) || rate < 0 || rate > 100) return;
 
     setSavingRate(true);
-    const res = await fetch(`/api/admin/promoters/${id}`, {
+    const res = await fetch("/api/admin/promoters", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ payoutRate: rate }),
+      body: JSON.stringify({ id, payoutRate: rate }),
     });
     setSavingRate(false);
 
