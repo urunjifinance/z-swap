@@ -3,12 +3,13 @@ import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { REQUEST_FEE_ZMW } from "@/lib/data/sample-users";
 
 const createPromoterSchema = z.object({
   name: z.string().min(2),
   phone: z.string().optional(),
   code: z.string().min(3).max(20).regex(/^[A-Z0-9]+$/, "Code must be uppercase letters and numbers only"),
-  payoutRate: z.number().min(0).default(0),
+  payoutRate: z.number().min(0).max(100).default(0), // % of the registration fee, not a flat ZMW amount
 });
 
 // GET /api/admin/promoters — list all promoters with referral stats.
@@ -28,14 +29,23 @@ export async function GET() {
     }),
   ]);
 
-  const withStats = promoters.map((p: { code: string; [key: string]: any }) => {
+  const withStats = promoters.map((p: { code: string; payoutRate: number; [key: string]: any }) => {
     const paid = referralCounts.find(
       (r: any) => r.referredByCode === p.code && r.registrationFeePaid === true
     )?._count ?? 0;
     const total = referralCounts
       .filter((r: any) => r.referredByCode === p.code)
       .reduce((sum: number, r: any) => sum + r._count, 0);
-    return { ...p, paidReferrals: paid, totalReferrals: total };
+    // Amount per referral is derived live from the current fee — never stored,
+    // so it stays correct automatically if the fee changes later.
+    const amountPerReferral = Math.round((p.payoutRate / 100) * REQUEST_FEE_ZMW * 100) / 100;
+    return {
+      ...p,
+      paidReferrals: paid,
+      totalReferrals: total,
+      amountPerReferral,
+      amountOwed: Math.round(amountPerReferral * paid * 100) / 100,
+    };
   });
 
   return NextResponse.json(withStats);
