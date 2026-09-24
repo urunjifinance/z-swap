@@ -1,7 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
-import { UploadCloud, FileCheck2 } from "lucide-react";
+import { UploadCloud, FileCheck2, ShieldAlert } from "lucide-react";
 import { useRegistrationStore, RegistrationData } from "@/lib/stores/registration-store";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -65,7 +65,16 @@ export function Step8Verification() {
         ))}
       </div>
 
-      <div className="mt-6 space-y-3 border-t border-border pt-5">
+      <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-3.5 flex gap-2.5">
+        <ShieldAlert className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+        <p className="text-xs text-amber-800">
+          <strong>Protect yourself from scams:</strong> Never pay an incentive to another user before your
+          swap is officially confirmed and completed on the platform. Z-Swap is not responsible for money
+          paid directly to another user outside the platform before a swap is finalized.
+        </p>
+      </div>
+
+      <div className="mt-4 space-y-3 border-t border-border pt-5">
         <div className="flex items-start gap-2">
           <Checkbox id="terms" checked={data.agreedToTerms} onCheckedChange={(v) => update({ agreedToTerms: Boolean(v) })} className="mt-0.5" />
           <Label htmlFor="terms" className="font-normal text-sm">
