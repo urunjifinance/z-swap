@@ -12,6 +12,14 @@ const createPromoterSchema = z.object({
   payoutRate: z.number().min(0).max(100).default(0), // % of the registration fee, not a flat ZMW amount
 });
 
+const updatePromoterSchema = z.object({
+  id: z.string().min(1),
+  status: z.enum(["ACTIVE", "DISABLED"]).optional(),
+  payoutRate: z.number().min(0).max(100).optional(),
+}).refine((data) => data.status !== undefined || data.payoutRate !== undefined, {
+  message: "Provide at least one field to update.",
+});
+
 // GET /api/admin/promoters — list all promoters with referral stats.
 // Restricted to users with role ADMIN.
 export async function GET() {
@@ -36,8 +44,6 @@ export async function GET() {
     const total = referralCounts
       .filter((r: any) => r.referredByCode === p.code)
       .reduce((sum: number, r: any) => sum + r._count, 0);
-    // Amount per referral is derived live from the current fee — never stored,
-    // so it stays correct automatically if the fee changes later.
     const amountPerReferral = Math.round((p.payoutRate / 100) * REQUEST_FEE_ZMW * 100) / 100;
     return {
       ...p,
@@ -83,5 +89,34 @@ export async function POST(req: NextRequest) {
     }
     console.error(err);
     return NextResponse.json({ error: "Failed to create promoter" }, { status: 500 });
+  }
+}
+
+// PATCH /api/admin/promoters — update a promoter's status and/or payout rate.
+// Takes the promoter id in the request body (not the URL) to avoid a dynamic
+// route segment coexisting with this file's own top-level route.
+// Restricted to users with role ADMIN.
+export async function PATCH(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user || (session.user as any).role !== "ADMIN") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  try {
+    const data = updatePromoterSchema.parse(await req.json());
+    const { id, ...updateFields } = data;
+
+    const promoter = await prisma.promoter.update({
+      where: { id },
+      data: updateFields,
+    });
+
+    return NextResponse.json(promoter);
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return NextResponse.json({ error: "Validation failed", issues: err.issues }, { status: 400 });
+    }
+    console.error(err);
+    return NextResponse.json({ error: "Failed to update promoter" }, { status: 500 });
   }
 }
