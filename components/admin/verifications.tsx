@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { FileText, CheckCircle2, XCircle, Eye } from "lucide-react";
+import { FileText, CheckCircle2, XCircle, Eye, ExternalLink } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,8 @@ type PendingUser = {
   fullName: string;
   nrcNumber: string;
   photoUrl: string | null;
+  nrcDocUrl: string | null;
+  selfieUrl: string | null;
   jobTitle: string;
   currentStationName: string;
   currentDistrict: string;
@@ -39,6 +41,7 @@ export function AdminVerifications() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [rejectTarget, setRejectTarget] = useState<PendingUser | null>(null);
   const [reason, setReason] = useState("");
+  const [docsTarget, setDocsTarget] = useState<PendingUser | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -127,7 +130,9 @@ export function AdminVerifications() {
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
-              <Button variant="ghost" size="sm"><FileText className="h-3.5 w-3.5" /> Documents</Button>
+              <Button variant="ghost" size="sm" onClick={() => setDocsTarget(u)}>
+                <FileText className="h-3.5 w-3.5" /> Documents
+              </Button>
               <Button variant="ghost" size="sm"><Eye className="h-3.5 w-3.5" /> Profile</Button>
               <Button size="sm" variant="secondary" disabled={busyId === u.id} onClick={() => approve(u)}>
                 <CheckCircle2 className="h-3.5 w-3.5" /> Approve
@@ -182,6 +187,43 @@ export function AdminVerifications() {
             <Button variant="destructive" disabled={busyId === rejectTarget?.id} onClick={submitReject}>
               Confirm rejection
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!docsTarget} onOpenChange={(open) => !open && setDocsTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{docsTarget?.fullName}'s documents</DialogTitle>
+            <DialogDescription>
+              Review the submitted NRC and selfie before approving or rejecting this registration.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            {docsTarget?.nrcDocUrl ? (
+              
+                href={docsTarget.nrcDocUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between rounded-lg border border-border p-3 text-sm font-semibold text-primary-700 hover:bg-primary-50"
+              >
+                National ID (NRC) <ExternalLink className="h-4 w-4" />
+              </a>
+            ) : (
+              <p className="text-sm text-slate-500">No NRC document uploaded.</p>
+            )}
+            {docsTarget?.selfieUrl ? (
+              
+                href={docsTarget.selfieUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between rounded-lg border border-border p-3 text-sm font-semibold text-primary-700 hover:bg-primary-50"
+              >
+                Selfie <ExternalLink className="h-4 w-4" />
+              </a>
+            ) : (
+              <p className="text-sm text-slate-500">No selfie uploaded.</p>
+            )}
           </div>
         </DialogContent>
       </Dialog>
