@@ -30,6 +30,8 @@ model User {
   dateOfBirth         DateTime
   gender              String
   photoUrl            String?
+  nrcDocUrl           String?
+  selfieUrl           String?
   phone               String   @unique
   email               String   @unique
   altPhone            String?
