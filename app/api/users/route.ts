@@ -3,9 +3,11 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 
-const registerSchema = z.object({
+  const registerSchema = z.object({
   fullName: z.string().min(2),
   nrcNumber: z.string().regex(/^\d{6}\/\d{2}\/\d$/),
+  nrcDocUrl: z.string().url(),
+  selfieUrl: z.string().url(),
   dateOfBirth: z.string(),
   gender: z.string(),
   phone: z.string().regex(/^0\d{9}$/),
@@ -57,6 +59,8 @@ export async function POST(req: NextRequest) {
       data: {
         fullName: data.fullName,
         nrcNumber: data.nrcNumber,
+        nrcDocUrl: data.nrcDocUrl,
+        selfieUrl: data.selfieUrl,
         dateOfBirth: new Date(data.dateOfBirth),
         gender: data.gender,
         phone: data.phone,
