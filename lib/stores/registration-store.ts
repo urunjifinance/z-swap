@@ -117,8 +117,8 @@ const initialData: RegistrationData = {
   emergencyPhone: "",
   emergencyRelation: "",
 
-  nrcDocName: "",
-  selfieName: "",
+  nrcDocUrl: "",
+  selfieUrl: "",
   agreedToTerms: false,
   consentSharedProfile: false,
 
