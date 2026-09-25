@@ -44,10 +44,11 @@ export async function POST(req: NextRequest) {
       data: { userId, amount: REGISTRATION_FEE_ZMW, method: data.method, status: "PENDING", txnId },
     });
 
-    const res = await collectMobileMoney({
+       const res = await collectMobileMoney({
       referenceId: txnId,
       amount: REGISTRATION_FEE_ZMW,
       accountNumber: "260" + data.phone.slice(1),
+      narration: "Z-Swap registration fee",
       callbackUrl: `${process.env.NEXTAUTH_URL}/api/payments/webhook`,
     });
 
