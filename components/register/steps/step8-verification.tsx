@@ -1,20 +1,40 @@
 "use client";
 
+import { useState } from "react";
+import { upload } from "@vercel/blob/client";
 import { toast } from "sonner";
-import { UploadCloud, FileCheck2, ShieldAlert } from "lucide-react";
+import { UploadCloud, FileCheck2, ShieldAlert, Loader2 } from "lucide-react";
 import { useRegistrationStore, RegistrationData } from "@/lib/stores/registration-store";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { StepNav } from "../step-nav";
 
 const DOCS: { key: keyof RegistrationData; label: string; required: boolean }[] = [
-  { key: "nrcDocName", label: "National ID (NRC)", required: true },
-  { key: "selfieName", label: "Selfie for identity verification", required: true },
+  { key: "nrcDocUrl", label: "National ID (NRC)", required: true },
+  { key: "selfieUrl", label: "Selfie for identity verification", required: true },
 ];
 
 function UploadRow({ docKey, label, required }: { docKey: keyof RegistrationData; label: string; required: boolean }) {
   const { data, update } = useRegistrationStore();
-  const fileName = data[docKey] as string;
+  const fileUrl = data[docKey] as string;
+  const [uploading, setUploading] = useState(false);
+
+  const handleFile = async (file: File | undefined) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const blob = await upload(`registration/${docKey}-${Date.now()}-${file.name}`, file, {
+        access: "public",
+        handleUploadUrl: "/api/upload",
+      });
+      update({ [docKey]: blob.url } as Partial<RegistrationData>);
+      toast.success(`${label} uploaded`);
+    } catch (err) {
+      toast.error(`Could not upload ${label}. Please try again.`);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
     <div className="flex items-center justify-between rounded-xl border border-border p-4">
@@ -26,17 +46,20 @@ function UploadRow({ docKey, label, required }: { docKey: keyof RegistrationData
           <p className="text-sm font-semibold text-ink">
             {label} {required && <span className="text-destructive">*</span>}
           </p>
-          {fileName && <p className="text-xs text-secondary-600">{fileName}</p>}
+          {fileUrl && <p className="text-xs text-secondary-600">Uploaded</p>}
         </div>
       </div>
       <label className="cursor-pointer">
         <div className="inline-flex items-center gap-2 rounded-lg border border-primary-200 bg-primary-50 px-3 py-1.5 text-xs font-semibold text-primary-700 hover:bg-primary-100">
-          <UploadCloud className="h-3.5 w-3.5" /> {fileName ? "Replace" : "Upload"}
+          {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UploadCloud className="h-3.5 w-3.5" />}
+          {uploading ? "Uploading..." : fileUrl ? "Replace" : "Upload"}
         </div>
         <input
           type="file"
           className="hidden"
-          onChange={(e) => update({ [docKey]: e.target.files?.[0]?.name ?? "" } as Partial<RegistrationData>)}
+          accept="image/jpeg,image/png,image/webp,application/pdf"
+          disabled={uploading}
+          onChange={(e) => handleFile(e.target.files?.[0])}
         />
       </label>
     </div>
@@ -47,8 +70,8 @@ export function Step8Verification() {
   const { data, update } = useRegistrationStore();
 
   const validate = () => {
-    if (!data.nrcDocName) return toast.error("Upload your NRC document"), false;
-    if (!data.selfieName) return toast.error("Upload a selfie for identity verification"), false;
+    if (!data.nrcDocUrl) return toast.error("Upload your NRC document"), false;
+    if (!data.selfieUrl) return toast.error("Upload a selfie for identity verification"), false;
     if (!data.agreedToTerms) return toast.error("You must agree to the Terms of Service"), false;
     if (!data.consentSharedProfile) return toast.error("Consent is required to share your profile with matched users"), false;
     return true;
