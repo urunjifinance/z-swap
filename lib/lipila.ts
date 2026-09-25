@@ -1,4 +1,4 @@
-export const REGISTRATION_FEE_ZMW = 150;
+export const REGISTRATION_FEE_ZMW = 100;
 
 const BASE = process.env.LIPILA_BASE_URL!;
 const KEY = process.env.LIPILA_API_KEY!;
