@@ -47,12 +47,16 @@ export function Hero() {
             </Button>
           </div>
 
-          <div className="mt-10 flex items-center gap-6">
             <div className="flex -space-x-3">
-              {[12, 32, 44, 51].map((i) => (
+              {[
+                "https://images.unsplash.com/photo-1530785602389-07594beb8b73",
+                "https://images.unsplash.com/photo-1573496358961-3c82861ab8f4",
+                "https://images.unsplash.com/photo-1632765866070-3fadf25d3d5b",
+                "https://images.unsplash.com/photo-1611432579699-484f7990b127",
+              ].map((url) => (
                 <img
-                  key={i}
-                  src={`https://i.pravatar.cc/64?img=${i}`}
+                  key={url}
+                  src={`${url}?w=64&h=64&fit=crop&crop=faces`}
                   alt=""
                   className="h-10 w-10 rounded-full ring-2 ring-white object-cover"
                 />
