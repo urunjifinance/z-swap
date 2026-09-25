@@ -30,5 +30,6 @@ export const config = {
     "/swap/:path*",
     "/api/matches/:path*",
     "/api/swap-requests/:path*",
+    "/api/chat/:path*",
   ],
 };

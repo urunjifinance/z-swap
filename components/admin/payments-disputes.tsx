@@ -1,13 +1,39 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { SAMPLE_SWAP_REQUESTS, SAMPLE_USERS, REQUEST_FEE_ZMW } from "@/lib/data/sample-users";
+import { Button } from "@/components/ui/button";
 import { formatZMW, formatDate } from "@/lib/utils";
 
+type AdminPayment = {
+  id: string;
+  txnId: string;
+  amount: number;
+  method: string;
+  createdAt: string;
+  user: { id: string; fullName: string };
+};
+
 export function AdminPayments() {
-  const paid = SAMPLE_SWAP_REQUESTS.filter((r) => r.feePaid);
-  const totalRevenue = paid.length * REQUEST_FEE_ZMW;
+  const [payments, setPayments] = useState<AdminPayment[]>([]);
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      const res = await fetch("/api/admin/payments");
+      if (res.ok) {
+        const data = await res.json();
+        setPayments(data.payments);
+        setTotalRevenue(data.totalRevenue);
+      } else {
+        toast.error("Could not load payments");
+      }
+      setLoading(false);
+    })();
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -31,18 +57,18 @@ export function AdminPayments() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {paid.map((r) => {
-                const user = SAMPLE_USERS.find((u) => u.id === r.userId);
-                return (
-                  <tr key={r.id} className="hover:bg-muted/50">
-                    <td className="px-4 py-3 font-mono text-xs text-slate-600">{r.txnId}</td>
-                    <td className="px-4 py-3 font-semibold text-ink">{user?.name}</td>
-                    <td className="px-4 py-3 text-slate-600">{formatZMW(REQUEST_FEE_ZMW)}</td>
-                    <td className="px-4 py-3 text-slate-600">{formatDate(r.createdAt)}</td>
-                    <td className="px-4 py-3"><Badge variant="success">Reconciled</Badge></td>
-                  </tr>
-                );
-              })}
+              {!loading && payments.length === 0 && (
+                <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-500">No reconciled payments yet.</td></tr>
+              )}
+              {payments.map((p) => (
+                <tr key={p.id} className="hover:bg-muted/50">
+                  <td className="px-4 py-3 font-mono text-xs text-slate-600">{p.txnId}</td>
+                  <td className="px-4 py-3 font-semibold text-ink">{p.user.fullName}</td>
+                  <td className="px-4 py-3 text-slate-600">{formatZMW(p.amount)}</td>
+                  <td className="px-4 py-3 text-slate-600">{formatDate(p.createdAt)}</td>
+                  <td className="px-4 py-3"><Badge variant="success">Reconciled</Badge></td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </CardContent>
@@ -51,29 +77,73 @@ export function AdminPayments() {
   );
 }
 
-const SAMPLE_REPORTS = [
-  { id: "r1", reporter: "Chola Mwansa", reported: "Unknown user", reason: "Requested payment outside the platform", status: "open" },
-  { id: "r2", reporter: "Bwalya Chishimba", reported: "Natasha Zulu", reason: "Unresponsive after fee payment", status: "reviewing" },
-  { id: "r3", reporter: "Kelvin Banda", reported: "Precious Mumba", reason: "Suspected duplicate account", status: "resolved" },
-];
+type AdminReport = {
+  id: string;
+  reason: string;
+  details: string | null;
+  resolved: boolean;
+  createdAt: string;
+  reporter: { id: string; fullName: string };
+  reported: { id: string; fullName: string };
+};
 
 export function AdminDisputes() {
-  const statusVariant: Record<string, "warning" | "pending" | "success"> = {
-    open: "warning",
-    reviewing: "pending",
-    resolved: "success",
+  const [reports, setReports] = useState<AdminReport[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const load = async () => {
+    const res = await fetch("/api/admin/reports");
+    if (res.ok) {
+      setReports(await res.json());
+    } else {
+      toast.error("Could not load reports");
+    }
+    setLoading(false);
   };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const resolve = async (reportId: string) => {
+    setBusyId(reportId);
+    const res = await fetch("/api/admin/reports", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reportId }),
+    });
+    if (res.ok) {
+      setReports((prev) => prev.map((r) => (r.id === reportId ? { ...r, resolved: true } : r)));
+      toast.success("Report marked resolved");
+    } else {
+      toast.error("Could not update report");
+    }
+    setBusyId(null);
+  };
+
+  if (!loading && reports.length === 0) {
+    return <p className="text-sm text-slate-500 text-center py-12">No reports have been filed.</p>;
+  }
 
   return (
     <div className="space-y-3">
-      {SAMPLE_REPORTS.map((r) => (
+      {reports.map((r) => (
         <Card key={r.id}>
           <CardContent className="p-5 flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-bold text-ink">{r.reporter} reported {r.reported}</p>
+              <p className="text-sm font-bold text-ink">{r.reporter.fullName} reported {r.reported.fullName}</p>
               <p className="text-xs text-slate-500 mt-0.5">{r.reason}</p>
+              {r.details && <p className="text-xs text-slate-400 mt-0.5">{r.details}</p>}
             </div>
-            <Badge variant={statusVariant[r.status]}>{r.status}</Badge>
+            <div className="flex items-center gap-2 shrink-0">
+              <Badge variant={r.resolved ? "success" : "warning"}>{r.resolved ? "resolved" : "open"}</Badge>
+              {!r.resolved && (
+                <Button size="sm" variant="outline" disabled={busyId === r.id} onClick={() => resolve(r.id)}>
+                  Mark resolved
+                </Button>
+              )}
+            </div>
           </CardContent>
         </Card>
       ))}

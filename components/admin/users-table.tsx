@@ -1,23 +1,47 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DEPARTMENTS } from "@/lib/data/departments";
 import { PROVINCES } from "@/lib/data/locations";
-import { SAMPLE_USERS } from "@/lib/data/sample-users";
 import { initials, maskNRC } from "@/lib/utils";
 
+type AdminUser = {
+  id: string;
+  fullName: string;
+  nrcNumber: string;
+  photoUrl: string | null;
+  department: { name: string } | null;
+  salaryScale: string;
+  currentProvince: string;
+  verificationStatus: "PENDING" | "VERIFIED" | "REJECTED";
+};
+
 export function AdminUsers() {
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [province, setProvince] = useState("");
 
-  const filtered = SAMPLE_USERS.filter((u) => {
-    if (q && !u.name.toLowerCase().includes(q.toLowerCase())) return false;
+  useEffect(() => {
+    (async () => {
+      const res = await fetch("/api/admin/users");
+      if (res.ok) {
+        setUsers(await res.json());
+      } else {
+        toast.error("Could not load users");
+      }
+      setLoading(false);
+    })();
+  }, []);
+
+  const filtered = users.filter((u) => {
+    if (q && !u.fullName.toLowerCase().includes(q.toLowerCase())) return false;
     if (province && u.currentProvince !== province) return false;
     return true;
   });
@@ -48,31 +72,33 @@ export function AdminUsers() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filtered.map((u) => {
-                const dept = DEPARTMENTS.find((d) => d.id === u.departmentId);
-                return (
-                  <tr key={u.id} className="hover:bg-muted/50">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2.5">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={u.photo} />
-                          <AvatarFallback>{initials(u.name)}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-semibold text-ink">{u.name}</p>
-                          <p className="text-xs text-slate-400">NRC {maskNRC(u.nrc)}</p>
-                        </div>
+              {!loading && filtered.length === 0 && (
+                <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-500">No users found.</td></tr>
+              )}
+              {filtered.map((u) => (
+                <tr key={u.id} className="hover:bg-muted/50">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2.5">
+                      <Avatar className="h-8 w-8">
+                        {u.photoUrl && <AvatarImage src={u.photoUrl} />}
+                        <AvatarFallback>{initials(u.fullName)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-semibold text-ink">{u.fullName}</p>
+                        <p className="text-xs text-slate-400">NRC {maskNRC(u.nrcNumber)}</p>
                       </div>
-                    </td>
-                    <td className="px-4 py-3 text-slate-600">{dept?.name}</td>
-                    <td className="px-4 py-3 text-slate-600">{u.salaryScale}</td>
-                    <td className="px-4 py-3 text-slate-600">{u.currentProvince}</td>
-                    <td className="px-4 py-3">
-                      <Badge variant={u.verified ? "success" : "pending"}>{u.verified ? "Verified" : "Pending"}</Badge>
-                    </td>
-                  </tr>
-                );
-              })}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-slate-600">{u.department?.name ?? "—"}</td>
+                  <td className="px-4 py-3 text-slate-600">{u.salaryScale}</td>
+                  <td className="px-4 py-3 text-slate-600">{u.currentProvince}</td>
+                  <td className="px-4 py-3">
+                    <Badge variant={u.verificationStatus === "VERIFIED" ? "success" : "pending"}>
+                      {u.verificationStatus === "VERIFIED" ? "Verified" : u.verificationStatus === "REJECTED" ? "Rejected" : "Pending"}
+                    </Badge>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </CardContent>
