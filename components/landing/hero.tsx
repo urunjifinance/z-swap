@@ -58,12 +58,12 @@ export function Hero() {
                 />
               ))}
             </div>
-            <div className="text-sm text-slate-600">
-              <span className="font-bold text-ink flex items-center gap-1">
-                <Users className="h-4 w-4 text-primary-600" /> 12,400+ workers
-              </span>
-              already on Z-Swap across Zambia
-            </div>
+                     <div className="text-sm text-slate-600">
+            <span className="font-bold text-ink flex items-center gap-1">
+              <Users className="h-4 w-4 text-primary-600" /> Verified &amp; secure
+            </span>
+            every registration reviewed by our admin team
+          </div>
           </div>
         </motion.div>
 
