@@ -24,7 +24,7 @@ function UploadRow({ docKey, label, required }: { docKey: keyof RegistrationData
     setUploading(true);
     try {
       const blob = await upload(`registration/${docKey}-${Date.now()}-${file.name}`, file, {
-        access: "public",
+        access: "private",
         handleUploadUrl: "/api/upload",
       });
       update({ [docKey]: blob.url } as Partial<RegistrationData>);
