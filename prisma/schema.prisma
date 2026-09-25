@@ -87,6 +87,8 @@ model User {
 
   // VerificationStatus: "PENDING" | "VERIFIED" | "REJECTED"
   verificationStatus   String              @default("PENDING")
+  rejectionReason      String?
+  resubmissionUsed     Boolean             @default(false)
   mostWanted           Boolean             @default(false)
 
   // Registration fee — paid immediately on registration, before admin
