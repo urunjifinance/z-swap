@@ -47,6 +47,7 @@ export default async function DashboardPage() {
   if (!user) redirect("/login");
 
   const verified = user.verificationStatus === "VERIFIED";
+  const rejected = user.verificationStatus === "REJECTED";
 
   // Real matches: other verified users whose current province/district is
   // among this user's desired ones (and vice versa), scored client-side by
@@ -94,9 +95,22 @@ export default async function DashboardPage() {
             </div>
           )}
 
-          {user.registrationFeePaid && !verified && (
+          {user.registrationFeePaid && !verified && !rejected && (
             <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
               Your profile is pending admin verification. You can browse matches, but you&apos;ll need to be verified before posting a swap request.
+            </div>
+          )}
+
+          {rejected && (
+            <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 space-y-2">
+              <p className="font-bold">Your registration was not approved.</p>
+              {user.rejectionReason && (
+                <p><span className="font-semibold">Reason:</span> {user.rejectionReason}</p>
+              )}
+              <p>
+                If you believe this is a mistake, or you&apos;d like to correct the issue and reapply, please contact{" "}
+                <a href="mailto:support@z-swap.com" className="font-bold underline">support@z-swap.com</a>.
+              </p>
             </div>
           )}
 
