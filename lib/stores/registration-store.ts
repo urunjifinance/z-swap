@@ -58,8 +58,8 @@ export interface RegistrationData {
   emergencyRelation: string;
 
   // Step 8 — Documents
-  nrcDocName: string;
-  selfieName: string;
+   nrcDocUrl: string;
+  selfieUrl: string;
   agreedToTerms: boolean;
   consentSharedProfile: boolean;
 
