@@ -70,6 +70,8 @@ export function Step9Review() {
           agreedToTerms: data.agreedToTerms,
           consentSharedProfile: data.consentSharedProfile,
           promoCode: data.promoCode || undefined,
+          nrcDocUrl: data.nrcDocUrl,
+          selfieUrl: data.selfieUrl,
         }),
       });
 
@@ -157,7 +159,7 @@ export function Step9Review() {
 
         <Section title="Contacts & Documents" step={7} setStep={setStep}>
           <Row label="Emergency contact" value={data.emergencyName} />
-          <Row label="Documents uploaded" value={[data.nrcDocName, data.selfieName].filter(Boolean).length + " files"} />
+       <Row label="Documents uploaded" value={[data.nrcDocUrl, data.selfieUrl].filter(Boolean).length + " files"} />
         </Section>
       </div>
 
