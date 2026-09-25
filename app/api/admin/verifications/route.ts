@@ -21,6 +21,8 @@ export async function GET() {
         fullName: true,
         nrcNumber: true,
         photoUrl: true,
+         nrcDocUrl: true,
+        selfieUrl: true,        
         jobTitle: true,
         currentStationName: true,
         currentDistrict: true,
