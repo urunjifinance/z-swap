@@ -47,27 +47,27 @@ export function Hero() {
             </Button>
           </div>
 
-            <div className="flex -space-x-3">
-              {[
-                "https://images.unsplash.com/photo-1530785602389-07594beb8b73",
-                "https://images.unsplash.com/photo-1573496358961-3c82861ab8f4",
-                "https://images.unsplash.com/photo-1632765866070-3fadf25d3d5b",
-                "https://images.unsplash.com/photo-1611432579699-484f7990b127",
-              ].map((url) => (
-                <img
-                  key={url}
-                  src={`${url}?w=64&h=64&fit=crop&crop=faces`}
-                  alt=""
-                  className="h-10 w-10 rounded-full ring-2 ring-white object-cover"
-                />
-              ))}
-            </div>
-                     <div className="text-sm text-slate-600">
+          <div className="flex -space-x-3">
+            {[
+              "https://images.unsplash.com/photo-1530785602389-07594beb8b73",
+              "https://images.unsplash.com/photo-1573496358961-3c82861ab8f4",
+              "https://images.unsplash.com/photo-1632765866070-3fadf25d3d5b",
+              "https://images.unsplash.com/photo-1611432579699-484f7990b127",
+            ].map((url) => (
+              <img
+                key={url}
+                src={`${url}?w=64&h=64&fit=crop&crop=faces`}
+                alt=""
+                className="h-10 w-10 rounded-full ring-2 ring-white object-cover"
+              />
+            ))}
+          </div>
+
+          <div className="text-sm text-slate-600">
             <span className="font-bold text-ink flex items-center gap-1">
               <Users className="h-4 w-4 text-primary-600" /> Verified &amp; secure
             </span>
             every registration reviewed by our admin team
-          </div>
           </div>
         </motion.div>
 
