@@ -49,10 +49,10 @@ export function Hero() {
 
           <div className="flex -space-x-3">
             {[
+              "https://images.unsplash.com/photo-1531123897727-8f129e1688ce",
+              "https://images.unsplash.com/photo-1565884280295-98eb83e41c65",
+              "https://images.unsplash.com/photo-1527201987695-67c06571957e",
               "https://images.unsplash.com/photo-1530785602389-07594beb8b73",
-              "https://images.unsplash.com/photo-1573496358961-3c82861ab8f4",
-              "https://images.unsplash.com/photo-1632765866070-3fadf25d3d5b",
-              "https://images.unsplash.com/photo-1611432579699-484f7990b127",
             ].map((url) => (
               <img
                 key={url}
