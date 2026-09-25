@@ -177,4 +177,4 @@ export const SAMPLE_SWAP_REQUESTS: SwapRequestSample[] = [
   { id: "sr4", userId: "u5", status: "pending", createdAt: "2026-09-01", feePaid: true, txnId: "ZSW-1A7B3-88450" },
 ];
 
-export const REQUEST_FEE_ZMW = 150;
+export const REQUEST_FEE_ZMW = 100;

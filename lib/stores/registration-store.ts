@@ -62,6 +62,9 @@ export interface RegistrationData {
   selfieName: string;
   agreedToTerms: boolean;
   consentSharedProfile: boolean;
+
+  // Step 9 — Referral
+  promoCode: string;
 }
 
 const initialData: RegistrationData = {
@@ -118,6 +121,8 @@ const initialData: RegistrationData = {
   selfieName: "",
   agreedToTerms: false,
   consentSharedProfile: false,
+
+  promoCode: "",
 };
 
 interface RegistrationStore {

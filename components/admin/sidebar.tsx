@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeftRight, LayoutDashboard, Users, ShieldCheck, CreditCard, Flag, LogOut } from "lucide-react";
+import { ArrowLeftRight, LayoutDashboard, Users, ShieldCheck, CreditCard, Flag, Gift, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV = [
   { id: "overview", label: "Analytics", icon: LayoutDashboard },
   { id: "verifications", label: "Verification Approvals", icon: ShieldCheck },
   { id: "users", label: "Users", icon: Users },
+  { id: "promoters", label: "Promoters", icon: Gift },
   { id: "payments", label: "Payments & Revenue", icon: CreditCard },
   { id: "disputes", label: "Disputes & Reports", icon: Flag },
 ];
