@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { formatZMW, formatDate, cn } from "@/lib/utils";
 
 // Display only. The real amount is set on the server (lib/lipila.ts).
-const FEE_ZMW = 150;
+const FEE_ZMW = 100;
 
 const METHODS = [
   { id: "airtel", label: "Airtel Money", apiValue: "AIRTEL_MONEY" },
