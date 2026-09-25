@@ -202,7 +202,7 @@ export function AdminVerifications() {
           <div className="space-y-3">
             {docsTarget?.nrcDocUrl ? (
               <a
-                href={docsTarget.nrcDocUrl}
+                href={`/api/admin/documents?url=${encodeURIComponent(docsTarget.nrcDocUrl)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-between rounded-lg border border-border p-3 text-sm font-semibold text-primary-700 hover:bg-primary-50"
@@ -214,7 +214,7 @@ export function AdminVerifications() {
             )}
             {docsTarget?.selfieUrl ? (
             <a
-                href={docsTarget.selfieUrl}
+                href={`/api/admin/documents?url=${encodeURIComponent(docsTarget.selfieUrl)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-between rounded-lg border border-border p-3 text-sm font-semibold text-primary-700 hover:bg-primary-50"
