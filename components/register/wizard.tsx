@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { useRegistrationStore, TOTAL_STEPS, STEP_LABELS } from "@/lib/stores/registration-store";
@@ -29,7 +31,19 @@ const STEPS = [
 ];
 
 export function RegistrationWizard() {
-  const { step } = useRegistrationStore();
+  const { step, data, update } = useRegistrationStore();
+  const searchParams = useSearchParams();
+
+  // Pre-fill the promo code from a shared link like z-swap.com/register?ref=MUN10,
+  // so a promoter's referrals don't have to type or remember the code themselves.
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+    if (ref && !data.promoCode) {
+      update({ promoCode: ref.toUpperCase() });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
   const StepComponent = STEPS[step - 1];
   const progressPct = (step / TOTAL_STEPS) * 100;
 
