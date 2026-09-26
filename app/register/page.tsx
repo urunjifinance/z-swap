@@ -1,3 +1,6 @@
+"use client";
+
+import { Suspense } from "react";
 import Link from "next/link";
 import { ArrowLeftRight } from "lucide-react";
 import { RegistrationWizard } from "@/components/register/wizard";
@@ -12,7 +15,9 @@ export default function RegisterPage() {
           </span>
           Z-<span className="text-gradient">Swap</span>
         </Link>
-        <RegistrationWizard />
+        <Suspense fallback={<div className="text-center text-slate-400">Loading...</div>}>
+          <RegistrationWizard />
+        </Suspense>
       </div>
     </main>
   );
