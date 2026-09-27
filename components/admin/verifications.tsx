@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { FileText, CheckCircle2, XCircle, Eye, ExternalLink } from "lucide-react";
+import { FileText, CheckCircle2, XCircle, Eye, ExternalLink, ShieldAlert } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +24,7 @@ type PendingUser = {
   currentProvince: string;
   department: { name: string } | null;
   createdAt: string;
+  registrationFeePaid: boolean;
 };
 
 type RecentUser = {
@@ -32,6 +33,7 @@ type RecentUser = {
   photoUrl: string | null;
   verificationStatus: "VERIFIED" | "REJECTED";
   rejectionReason: string | null;
+  registrationFeePaid: boolean;
 };
 
 export function AdminVerifications() {
@@ -60,16 +62,34 @@ export function AdminVerifications() {
     load();
   }, []);
 
-  const approve = async (user: PendingUser) => {
+  const decide = async (user: PendingUser, decision: "VERIFIED" | "REJECTED", opts?: { reason?: string; waiveFee?: boolean }) => {
     setBusyId(user.id);
     const res = await fetch("/api/admin/verifications", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: user.id, decision: "VERIFIED" }),
+      body: JSON.stringify({ userId: user.id, decision, reason: opts?.reason, waiveFee: opts?.waiveFee }),
     });
     setBusyId(null);
+    return res;
+  };
+
+  const approve = async (user: PendingUser) => {
+    const res = await decide(user, "VERIFIED");
     if (res.ok) {
       toast.success("User verified");
+      load();
+    } else {
+      toast.error("Could not verify user");
+    }
+  };
+
+  // Verifies the account AND marks the registration fee as paid, without the
+  // user actually going through payment. For test accounts or explicitly
+  // agreed special cases only — see app/api/admin/verifications/route.ts.
+  const waiveAndVerify = async (user: PendingUser) => {
+    const res = await decide(user, "VERIFIED", { waiveFee: true });
+    if (res.ok) {
+      toast.success("User verified — fee waived");
       load();
     } else {
       toast.error("Could not verify user");
@@ -87,13 +107,7 @@ export function AdminVerifications() {
       toast.error("Please enter a reason for rejection");
       return;
     }
-    setBusyId(rejectTarget.id);
-    const res = await fetch("/api/admin/verifications", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: rejectTarget.id, decision: "REJECTED", reason: reason.trim() }),
-    });
-    setBusyId(null);
+    const res = await decide(rejectTarget, "REJECTED", { reason: reason.trim() });
     if (res.ok) {
       toast.success("Registration rejected");
       setRejectTarget(null);
@@ -123,7 +137,12 @@ export function AdminVerifications() {
                 <AvatarFallback>{initials(u.fullName)}</AvatarFallback>
               </Avatar>
               <div className="min-w-0">
-                <p className="font-bold text-ink text-sm">{u.fullName}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-bold text-ink text-sm">{u.fullName}</p>
+                  <Badge variant={u.registrationFeePaid ? "success" : "pending"}>
+                    {u.registrationFeePaid ? "Paid" : "Unpaid"}
+                  </Badge>
+                </div>
                 <p className="text-xs text-slate-500">{u.department?.name} · {u.jobTitle} · NRC {maskNRC(u.nrcNumber)}</p>
                 <p className="text-xs text-slate-500">{u.currentStationName}, {u.currentDistrict}</p>
               </div>
@@ -140,6 +159,17 @@ export function AdminVerifications() {
               <Button size="sm" variant="destructive" disabled={busyId === u.id} onClick={() => openReject(u)}>
                 <XCircle className="h-3.5 w-3.5" /> Reject
               </Button>
+              {!u.registrationFeePaid && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  title="Verifies this account AND marks the registration fee as paid, without them actually paying. Use only for test accounts or agreed special cases."
+                  disabled={busyId === u.id}
+                  onClick={() => waiveAndVerify(u)}
+                >
+                  <ShieldAlert className="h-3.5 w-3.5" /> Waive fee & verify
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -162,6 +192,11 @@ export function AdminVerifications() {
                 <p className="text-xs text-slate-500 truncate">Reason: {u.rejectionReason}</p>
               )}
             </div>
+            {u.verificationStatus === "VERIFIED" && (
+              <Badge variant={u.registrationFeePaid ? "success" : "pending"}>
+                {u.registrationFeePaid ? "Paid" : "Unpaid"}
+              </Badge>
+            )}
             <Badge variant={u.verificationStatus === "VERIFIED" ? "success" : "destructive"}>
               {u.verificationStatus === "VERIFIED" ? "Verified" : "Rejected"}
             </Badge>
@@ -201,7 +236,7 @@ export function AdminVerifications() {
           </DialogHeader>
           <div className="space-y-3">
             {docsTarget?.nrcDocUrl ? (
-              <a
+              
                 href={`/api/admin/documents?url=${encodeURIComponent(docsTarget.nrcDocUrl)}`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -213,7 +248,7 @@ export function AdminVerifications() {
               <p className="text-sm text-slate-500">No NRC document uploaded.</p>
             )}
             {docsTarget?.selfieUrl ? (
-            <a
+            
                 href={`/api/admin/documents?url=${encodeURIComponent(docsTarget.selfieUrl)}`}
                 target="_blank"
                 rel="noopener noreferrer"
