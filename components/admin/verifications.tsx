@@ -236,7 +236,7 @@ export function AdminVerifications() {
           </DialogHeader>
           <div className="space-y-3">
             {docsTarget?.nrcDocUrl ? (
-              
+             <a
                 href={`/api/admin/documents?url=${encodeURIComponent(docsTarget.nrcDocUrl)}`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -248,7 +248,7 @@ export function AdminVerifications() {
               <p className="text-sm text-slate-500">No NRC document uploaded.</p>
             )}
             {docsTarget?.selfieUrl ? (
-            
+            <a
                 href={`/api/admin/documents?url=${encodeURIComponent(docsTarget.selfieUrl)}`}
                 target="_blank"
                 rel="noopener noreferrer"
