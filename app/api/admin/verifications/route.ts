@@ -4,7 +4,8 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 // GET /api/admin/verifications — real pending + recently decided users.
-// POST/PATCH — admin approves or rejects a user, with a reason if rejected.
+// POST/PATCH — admin approves or rejects a user, with a reason if rejected,
+// and can optionally waive the registration fee at the same time.
 // Restricted to users with role ADMIN.
 
 export async function GET() {
@@ -21,14 +22,15 @@ export async function GET() {
         fullName: true,
         nrcNumber: true,
         photoUrl: true,
-         nrcDocUrl: true,
-        selfieUrl: true,        
+        nrcDocUrl: true,
+        selfieUrl: true,
         jobTitle: true,
         currentStationName: true,
         currentDistrict: true,
         currentProvince: true,
         department: { select: { name: true } },
         createdAt: true,
+        registrationFeePaid: true,
       },
       orderBy: { createdAt: "asc" },
     }),
@@ -40,6 +42,7 @@ export async function GET() {
         photoUrl: true,
         verificationStatus: true,
         rejectionReason: true,
+        registrationFeePaid: true,
       },
       orderBy: { updatedAt: "desc" },
       take: 10,
@@ -56,10 +59,17 @@ export async function PATCH(req: Request) {
   }
 
   const body = await req.json().catch(() => ({}));
-  const { userId, decision, reason } = body as {
+  const { userId, decision, reason, waiveFee } = body as {
     userId?: string;
     decision?: "VERIFIED" | "REJECTED";
     reason?: string;
+    // When true (only ever sent alongside decision: "VERIFIED"), marks the
+    // registration fee as paid without the user actually paying. Use only
+    // for test accounts or explicitly agreed special cases — every waived
+    // user still earns the referring promoter their normal payout, with no
+    // fee revenue behind it, so this bypasses money collection, not just a
+    // formality.
+    waiveFee?: boolean;
   };
 
   if (!userId || (decision !== "VERIFIED" && decision !== "REJECTED")) {
@@ -75,6 +85,7 @@ export async function PATCH(req: Request) {
     data: {
       verificationStatus: decision,
       rejectionReason: decision === "REJECTED" ? reason!.trim() : null,
+      ...(decision === "VERIFIED" && waiveFee ? { registrationFeePaid: true } : {}),
     },
   });
 
