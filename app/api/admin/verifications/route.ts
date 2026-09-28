@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { notifyNewMatchesForUser } from "@/lib/match-notifications";
+
+// Allows time to send match emails after a verification.
+export const maxDuration = 60;
 
 // GET /api/admin/verifications — real pending + recently decided users.
 // POST/PATCH — admin approves or rejects a user, with a reason if rejected,
@@ -80,6 +84,8 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "A rejection reason is required" }, { status: 400 });
   }
 
+  const before = await prisma.user.findUnique({ where: { id: userId }, select: { verificationStatus: true } });
+
   const updated = await prisma.user.update({
     where: { id: userId },
     data: {
@@ -100,6 +106,12 @@ export async function PATCH(req: Request) {
           : `Your registration was rejected. Reason: ${reason!.trim()}`,
     },
   });
+
+  // Newly verified → tell this user and everyone they match with (email + in-app).
+  // Failures are logged but never block the verification itself.
+  if (decision === "VERIFIED" && before?.verificationStatus !== "VERIFIED") {
+    await notifyNewMatchesForUser(userId).catch((e) => console.error("match notification error", e));
+  }
 
   return NextResponse.json({ success: true, user: updated });
 }
