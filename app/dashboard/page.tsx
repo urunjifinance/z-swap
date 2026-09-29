@@ -42,11 +42,23 @@ export default async function DashboardPage() {
 
   const user = await prisma.user.findUnique({
     where: { id: (session.user as any).id },
-    include: { swapRequests: { include: { payment: true }, orderBy: { createdAt: "desc" } } },
+    include: {
+      swapRequests: { orderBy: { createdAt: "desc" } },
+      paymentsAsUser: { where: { status: "SUCCESS" }, orderBy: { createdAt: "desc" }, take: 1 },
+    },
   });
   if (!user) redirect("/login");
 
   const verified = user.verificationStatus === "VERIFIED";
+
+  // The fee is a one-off registration fee on the user (not per swap request).
+  // Paid = a successful payment exists; waived = admin marked it paid without one.
+  const paidTxn = user.paymentsAsUser[0]?.txnId;
+  const feeLabel = !user.registrationFeePaid
+    ? "Registration fee pending"
+    : paidTxn
+      ? `Registration fee paid (${paidTxn})`
+      : "Registration fee waived";
   const rejected = user.verificationStatus === "REJECTED";
 
   // Real matches: other verified users whose current province/district is
@@ -134,7 +146,7 @@ export default async function DashboardPage() {
                           {r.currentDistrict} → {r.desiredDistrict}
                         </p>
                         <p className="text-xs text-slate-500 mt-0.5">
-                          Posted {formatDate(r.createdAt)} · {r.payment?.status === "SUCCESS" ? `Fee paid (${r.payment.txnId})` : "Fee pending"}
+                          Posted {formatDate(r.createdAt)} · {feeLabel}
                         </p>
                       </div>
                       <Badge variant={statusColor[r.status] ?? "pending"}>{r.status.replace("_", " ").toLowerCase()}</Badge>
