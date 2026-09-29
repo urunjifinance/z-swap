@@ -8,7 +8,11 @@ let transporter: Transporter | null = null;
 
 function getTransporter(): Transporter | null {
   if (transporter) return transporter;
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
+  // Trim: values pasted into Vercel often carry a stray space or newline.
+  const SMTP_HOST = process.env.SMTP_HOST?.trim();
+  const SMTP_PORT = process.env.SMTP_PORT?.trim();
+  const SMTP_USER = process.env.SMTP_USER?.trim();
+  const SMTP_PASS = process.env.SMTP_PASS?.trim();
   if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) return null;
 
   const port = Number(SMTP_PORT || 465);
@@ -29,8 +33,20 @@ export async function sendEmail(opts: { to: string; subject: string; html: strin
     console.warn(`[email] SMTP not configured, skipped email to ${opts.to}: ${opts.subject}`);
     return false;
   }
-  const from = process.env.EMAIL_FROM || `Z-Swap <${process.env.SMTP_USER}>`;
-  await t.sendMail({ from, ...opts });
+  const from = process.env.EMAIL_FROM?.trim() || `Z-Swap <${process.env.SMTP_USER?.trim()}>`;
+  try {
+    await t.sendMail({ from, ...opts });
+  } catch (e: any) {
+    if (e?.responseCode === 535 || e?.code === "EAUTH") {
+      // Never log the password itself — only enough to spot a wrong user or a truncated key.
+      const pass = process.env.SMTP_PASS?.trim() ?? "";
+      console.error(
+        `[email] SMTP login rejected: host=${process.env.SMTP_HOST?.trim()} port=${process.env.SMTP_PORT?.trim()} ` +
+          `user=${process.env.SMTP_USER?.trim()} passLength=${pass.length} passStart=${pass.slice(0, 8)}…`
+      );
+    }
+    throw e;
+  }
   return true;
 }
 
