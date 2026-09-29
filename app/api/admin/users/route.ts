@@ -3,6 +3,10 @@ import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { notifyNewMatchesForUser } from "@/lib/match-notifications";
+
+// Allows time to send match emails after a verification.
+export const maxDuration = 60;
 
 // GET /api/admin/users — every registered worker, for the admin Users table.
 // Restricted to ADMIN. Filtering (name search, province) happens client-side
@@ -61,6 +65,8 @@ export async function PATCH(req: NextRequest) {
   try {
     const data = patchSchema.parse(await req.json());
 
+    const before = await prisma.user.findUnique({ where: { id: data.id }, select: { verificationStatus: true } });
+
     const user = await prisma.user.update({
       where: { id: data.id },
       data: {
@@ -74,6 +80,12 @@ export async function PATCH(req: NextRequest) {
         registrationFeePaid: true,
       },
     });
+
+    // Newly verified → email this user and everyone they match with.
+    // Failures are logged but never block the update itself.
+    if (data.verificationStatus === "VERIFIED" && before?.verificationStatus !== "VERIFIED") {
+      await notifyNewMatchesForUser(user.id).catch((e) => console.error("match notification error", e));
+    }
 
     return NextResponse.json(user);
   } catch (err) {
