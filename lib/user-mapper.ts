@@ -1,4 +1,5 @@
 import { SampleUser } from "./data/sample-users";
+import { photoSrc } from "./photo";
 
 // Bridges a real Prisma User row (flat strings, JSON-encoded arrays) into
 // the SampleUser shape that the dashboard/match UI components already know
@@ -55,7 +56,7 @@ export function dbUserToSampleUser(u: DbUserLike): SampleUser {
   return {
     id: u.id,
     name: u.fullName,
-    photo: u.photoUrl || `https://i.pravatar.cc/150?u=${u.id}`,
+    photo: photoSrc(u) ?? "",
     nrc: u.nrcNumber,
     employeeId: "",
     departmentId: u.departmentId,

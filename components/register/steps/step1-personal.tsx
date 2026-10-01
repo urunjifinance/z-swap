@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { upload } from "@vercel/blob/client";
 import { toast } from "sonner";
-import { UploadCloud, User } from "lucide-react";
+import { UploadCloud, User, Loader2 } from "lucide-react";
 import { useRegistrationStore } from "@/lib/stores/registration-store";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,36 @@ import { StepNav } from "../step-nav";
 export function Step1Personal() {
   const { data, update } = useRegistrationStore();
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState<string>("");
+
+  const handlePhoto = async (file: File | undefined) => {
+    if (!file) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      toast.error("Please choose a JPG, PNG or WEBP photo");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Photo must be smaller than 5MB");
+      return;
+    }
+    setUploading(true);
+    setPreview(URL.createObjectURL(file));
+    try {
+      const blob = await upload(`profile/photo-${Date.now()}-${file.name}`, file, {
+        access: "private",
+        handleUploadUrl: "/api/upload",
+      });
+      update({ photoUrl: blob.url, photoFileName: file.name });
+      toast.success("Profile photo uploaded");
+    } catch {
+      setPreview("");
+      update({ photoUrl: "", photoFileName: "" });
+      toast.error("Could not upload your photo. Please try again.");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -38,19 +69,25 @@ export function Step1Personal() {
 
       <div className="grid gap-5 md:grid-cols-2">
         <div className="md:col-span-2 flex items-center gap-4">
-          <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-muted border-2 border-dashed border-border text-muted-foreground">
-            <User className="h-8 w-8" />
+          <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl bg-muted border-2 border-dashed border-border text-muted-foreground">
+            {preview ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={preview} alt="Profile photo preview" className="h-full w-full object-cover" />
+            ) : (
+              <User className="h-8 w-8" />
+            )}
           </div>
           <label className="cursor-pointer">
             <div className="inline-flex items-center gap-2 rounded-xl border-2 border-primary-200 bg-primary-50 px-4 py-2 text-sm font-semibold text-primary-700 hover:bg-primary-100 transition-colors">
-              <UploadCloud className="h-4 w-4" />
-              {data.photoFileName || "Upload profile photo"}
+              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UploadCloud className="h-4 w-4" />}
+              {uploading ? "Uploading..." : data.photoUrl ? `${data.photoFileName} (change)` : "Upload profile photo"}
             </div>
             <input
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp"
               className="hidden"
-              onChange={(e) => update({ photoFileName: e.target.files?.[0]?.name ?? "" })}
+              disabled={uploading}
+              onChange={(e) => handlePhoto(e.target.files?.[0])}
             />
           </label>
         </div>

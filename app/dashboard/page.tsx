@@ -4,10 +4,12 @@ import { getServerSession } from "next-auth";
 import { ArrowLeftRight, Users, MessageSquare, Receipt, Plus } from "lucide-react";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { photoSrc } from "@/lib/photo";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { MatchCard } from "@/components/dashboard/match-card";
+import { ProfilePhotoUpload } from "@/components/dashboard/profile-photo-upload";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -86,7 +88,7 @@ export default async function DashboardPage() {
         <DashboardTopbar
           title={`Welcome back, ${user.fullName.split(" ")[0]}`}
           verified={verified}
-          avatarUrl={user.photoUrl ?? undefined}
+          avatarUrl={photoSrc(user)}
           avatarInitials={user.fullName.split(" ").filter(Boolean).slice(0, 2).map((n: string) => n[0]?.toUpperCase()).join("")}
         />
 
@@ -165,6 +167,7 @@ export default async function DashboardPage() {
                     {completion < 100 && <span className="font-semibold text-primary-600">Add missing details in your profile</span>}
                   </div>
                   <Progress value={completion} />
+                  <div className="mt-3"><ProfilePhotoUpload hasPhoto={Boolean(user.photoUrl)} /></div>
                 </CardContent>
               </Card>
             </div>

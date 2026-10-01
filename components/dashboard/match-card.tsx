@@ -17,7 +17,7 @@ export function MatchCard({ user }: { user: SampleUser & { matchScore?: number }
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
             <Avatar className="h-12 w-12">
-              <AvatarImage src={user.photo} />
+              {user.photo && <AvatarImage src={user.photo} />}
               <AvatarFallback>{initials(user.name)}</AvatarFallback>
             </Avatar>
             <div>

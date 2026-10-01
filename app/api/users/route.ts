@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { isBlobUrl } from "@/lib/photo";
 
   const registerSchema = z.object({
   fullName: z.string().min(2),
   nrcNumber: z.string().regex(/^\d{6}\/\d{2}\/\d$/),
+  photoUrl: z.string().url().refine(isBlobUrl).optional(),
   nrcDocUrl: z.string().url(),
   selfieUrl: z.string().url(),
   dateOfBirth: z.string(),
@@ -59,6 +61,7 @@ export async function POST(req: NextRequest) {
       data: {
         fullName: data.fullName,
         nrcNumber: data.nrcNumber,
+        photoUrl: data.photoUrl ?? null,
         nrcDocUrl: data.nrcDocUrl,
         selfieUrl: data.selfieUrl,
         dateOfBirth: new Date(data.dateOfBirth),

@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { photoSrc } from "@/lib/photo";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { initials, maskNRC } from "@/lib/utils";
@@ -133,7 +134,7 @@ export function AdminVerifications() {
           <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <Avatar className="h-12 w-12">
-                <AvatarImage src={u.photoUrl ?? undefined} />
+                <AvatarImage src={photoSrc(u)} />
                 <AvatarFallback>{initials(u.fullName)}</AvatarFallback>
               </Avatar>
               <div className="min-w-0">
@@ -183,7 +184,7 @@ export function AdminVerifications() {
         <Card key={u.id}>
           <CardContent className="p-4 flex items-center gap-3">
             <Avatar className="h-9 w-9">
-              <AvatarImage src={u.photoUrl ?? undefined} />
+              <AvatarImage src={photoSrc(u)} />
               <AvatarFallback>{initials(u.fullName)}</AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">

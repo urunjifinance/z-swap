@@ -52,6 +52,7 @@ export function Step9Review() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fullName: data.fullName,
+          photoUrl: data.photoUrl || undefined,
           nrcNumber: data.nrcNumber,
           dateOfBirth: data.dateOfBirth,
           gender: data.gender,

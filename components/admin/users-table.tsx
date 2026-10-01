@@ -9,6 +9,7 @@ import { Select } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { photoSrc } from "@/lib/photo";
 import { PROVINCES } from "@/lib/data/locations";
 import { initials, maskNRC } from "@/lib/utils";
 
@@ -111,7 +112,7 @@ export function AdminUsers() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5">
                       <Avatar className="h-8 w-8">
-                        {u.photoUrl && <AvatarImage src={u.photoUrl} />}
+                        {u.photoUrl && <AvatarImage src={photoSrc(u)} />}
                         <AvatarFallback>{initials(u.fullName)}</AvatarFallback>
                       </Avatar>
                       <div>

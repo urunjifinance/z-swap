@@ -7,6 +7,7 @@ export interface RegistrationData {
   dateOfBirth: string;
   gender: string;
   photoFileName: string;
+  photoUrl: string;
   phone: string;
   email: string;
   altPhone: string;
@@ -73,6 +74,7 @@ const initialData: RegistrationData = {
   dateOfBirth: "",
   gender: "",
   photoFileName: "",
+  photoUrl: "",
   phone: "",
   email: "",
   altPhone: "",

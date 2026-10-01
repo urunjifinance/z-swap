@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { photoSrc } from "@/lib/photo";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { NewSwapRequestForm } from "@/components/swap/new-swap-request-form";
@@ -24,7 +25,7 @@ export default async function NewSwapRequestPage() {
         <DashboardTopbar
           title="New Swap Request"
           verified={user.verificationStatus === "VERIFIED"}
-          avatarUrl={user.photoUrl ?? undefined}
+          avatarUrl={photoSrc(user)}
           avatarInitials={user.fullName.split(" ").filter(Boolean).slice(0, 2).map((n: string) => n[0]?.toUpperCase()).join("")}
         />
 

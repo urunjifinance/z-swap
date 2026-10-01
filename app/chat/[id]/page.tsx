@@ -2,6 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { photoSrc } from "@/lib/photo";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { ChatRoom } from "@/components/chat/chat-room";
 import { computeMatchScore } from "@/lib/matching-engine";
@@ -85,7 +86,7 @@ export default async function ChatPage({ params }: { params: { id: string } }) {
         otherUser={{
           id: otherUser.id,
           name: otherUser.fullName,
-          photo: otherUser.photoUrl,
+          photo: photoSrc(otherUser),
           verified: otherUser.verificationStatus === "VERIFIED",
         }}
         initialMessages={messages.map((m: (typeof messages)[number]) => ({
