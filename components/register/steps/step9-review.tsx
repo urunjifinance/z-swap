@@ -62,6 +62,8 @@ export function Step9Review() {
           departmentId: data.departmentId,
           jobTitle: data.jobTitle === "Other (specify)" ? data.jobTitleOther : data.jobTitle,
           salaryScale: data.salaryScale,
+          dateFirstAppointed: data.dateFirstAppointed || undefined,
+          yearsOfService: data.yearsOfService === "" ? undefined : Number(data.yearsOfService),
           currentStationName: data.currentStationName,
           currentProvince: data.currentProvince,
           currentDistrict: data.currentDistrict,
@@ -134,6 +136,7 @@ export function Step9Review() {
           <Row label="Salary scale / Rank" value={data.salaryScale} />
           <Row label="Job title" value={data.jobTitle} />
           <Row label="Current station" value={data.currentStationName} />
+          {data.dateFirstAppointed && <Row label="Date of first appointment" value={data.dateFirstAppointed} />}
           <Row label="Years of service" value={data.yearsOfService} />
         </Section>
 

@@ -1,5 +1,6 @@
 import { SampleUser } from "./data/sample-users";
 import { photoSrc } from "./photo";
+import { yearsSince } from "./service-years";
 
 // Bridges a real Prisma User row (flat strings, JSON-encoded arrays) into
 // the SampleUser shape that the dashboard/match UI components already know
@@ -39,6 +40,7 @@ export interface DbUserLike {
   jobTitle: string;
   salaryScale: string;
   yearsOfService: number;
+  dateFirstAppointed?: Date | null;
   currentStationName: string;
   currentDistrict: string;
   currentProvince: string;
@@ -62,7 +64,7 @@ export function dbUserToSampleUser(u: DbUserLike): SampleUser {
     departmentId: u.departmentId,
     jobTitle: u.jobTitle,
     salaryScale: u.salaryScale,
-    yearsOfService: u.yearsOfService,
+    yearsOfService: yearsSince(u.dateFirstAppointed) ?? u.yearsOfService,
     currentStation: u.currentStationName,
     currentDistrict: u.currentDistrict,
     currentProvince: u.currentProvince,

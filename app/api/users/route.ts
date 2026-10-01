@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { isBlobUrl } from "@/lib/photo";
+import { yearsSince } from "@/lib/service-years";
 
   const registerSchema = z.object({
   fullName: z.string().min(2),
@@ -18,6 +19,8 @@ import { isBlobUrl } from "@/lib/photo";
   departmentId: z.string(),
   jobTitle: z.string(),
   salaryScale: z.string(),
+  dateFirstAppointed: z.string().optional(),
+  yearsOfService: z.number().int().min(0).max(60).optional(),
   currentStationName: z.string(),
   currentProvince: z.string(),
   currentDistrict: z.string(),
@@ -55,6 +58,13 @@ export async function POST(req: NextRequest) {
       referredByCode = promoter.code;
     }
 
+    // The date is the source of truth; years are only typed in when no date is given.
+    const appointed = data.dateFirstAppointed ? new Date(data.dateFirstAppointed) : null;
+    const appointedYears = yearsSince(appointed);
+    if (appointed && appointedYears === null) {
+      return NextResponse.json({ error: "Date of first appointment is invalid." }, { status: 400 });
+    }
+
     const passwordHash = await bcrypt.hash(data.password, 10);
 
     const user = await prisma.user.create({
@@ -72,6 +82,8 @@ export async function POST(req: NextRequest) {
         departmentId: data.departmentId,
         jobTitle: data.jobTitle,
         salaryScale: data.salaryScale,
+        dateFirstAppointed: appointed,
+        yearsOfService: appointedYears ?? data.yearsOfService ?? 0,
         currentStationName: data.currentStationName,
         currentProvince: data.currentProvince,
         currentDistrict: data.currentDistrict,

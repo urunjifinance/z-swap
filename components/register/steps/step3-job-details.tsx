@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { StepNav } from "../step-nav";
+import { yearsSince } from "@/lib/service-years";
 
 export function Step3JobDetails() {
   const { data, update } = useRegistrationStore();
@@ -19,11 +20,21 @@ export function Step3JobDetails() {
   const isPolice = deptId === "zps";
   const isDefence = deptId === "zdf";
   const isCouncil = deptId === "molgrd";
+  // Police/Defence don't give a date of first appointment, so they type years instead.
+  const asksForDate = !isPolice && !isDefence;
+  const computedYears = yearsSince(data.dateFirstAppointed);
 
   const validate = () => {
     if (!data.salaryScale) return toast.error("Select a salary scale / rank"), false;
     if (!data.jobTitle) return toast.error("Select a job title"), false;
     if (!data.currentStationName.trim()) return toast.error("Enter your current station"), false;
+    if (asksForDate) {
+      if (!data.dateFirstAppointed) return toast.error("Enter your date of first appointment"), false;
+      if (computedYears === null) return toast.error("Date of first appointment can't be in the future"), false;
+      update({ yearsOfService: String(computedYears) });
+    } else if (data.yearsOfService === "" || Number(data.yearsOfService) < 0) {
+      return toast.error("Enter your years of service"), false;
+    }
     return true;
   };
 
@@ -62,10 +73,24 @@ export function Step3JobDetails() {
           </div>
         )}
 
-        {!isPolice && !isDefence && (
+        {asksForDate && (
           <div>
             <Label>Date of first appointment</Label>
-            <Input type="date" className="mt-1.5" value={data.dateFirstAppointed} onChange={(e) => update({ dateFirstAppointed: e.target.value })} />
+            <Input
+              type="date"
+              className="mt-1.5"
+              max={new Date().toISOString().slice(0, 10)}
+              value={data.dateFirstAppointed}
+              onChange={(e) => {
+                const years = yearsSince(e.target.value);
+                update({ dateFirstAppointed: e.target.value, yearsOfService: years === null ? "" : String(years) });
+              }}
+            />
+            {computedYears !== null && (
+              <p className="text-xs text-slate-500 mt-1">
+                {computedYears} year{computedYears === 1 ? "" : "s"} of service (calculated automatically)
+              </p>
+            )}
           </div>
         )}
 
@@ -96,10 +121,12 @@ export function Step3JobDetails() {
           </div>
         )}
 
-        <div>
-          <Label>Years of service</Label>
-          <Input type="number" min={0} className="mt-1.5" value={data.yearsOfService} onChange={(e) => update({ yearsOfService: e.target.value })} />
-        </div>
+        {!asksForDate && (
+          <div>
+            <Label>Years of service</Label>
+            <Input type="number" min={0} className="mt-1.5" value={data.yearsOfService} onChange={(e) => update({ yearsOfService: e.target.value })} />
+          </div>
+        )}
 
         {isEducation && (
           <>
