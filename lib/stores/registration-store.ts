@@ -66,6 +66,9 @@ export interface RegistrationData {
 
   // Step 9 — Referral
   promoCode: string;
+  // True when promoCode was pre-filled from a promoter's ?ref= link — the
+  // field is locked read-only in that case so it can't be edited or cleared.
+  promoCodeLocked: boolean;
 }
 
 const initialData: RegistrationData = {
@@ -125,6 +128,7 @@ const initialData: RegistrationData = {
   consentSharedProfile: false,
 
   promoCode: "",
+  promoCodeLocked: false,
 };
 
 interface RegistrationStore {

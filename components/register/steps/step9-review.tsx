@@ -172,14 +172,17 @@ export function Step9Review() {
           Promo code <span className="font-normal text-slate-500">(optional)</span>
         </Label>
         <p className="text-xs text-slate-500 mt-1 mb-3">
-          Were you referred by someone? Enter their code here.
+          {data.promoCodeLocked
+            ? "You followed a promoter's referral link, so this code is locked in for you."
+            : "Were you referred by someone? Enter their code here."}
         </p>
         <Input
           id="promoCode"
           value={data.promoCode}
-          onChange={(e) => update({ promoCode: e.target.value.toUpperCase() })}
+          onChange={(e) => !data.promoCodeLocked && update({ promoCode: e.target.value.toUpperCase() })}
+          readOnly={data.promoCodeLocked}
           placeholder="e.g. MERON10"
-          className="uppercase"
+          className={data.promoCodeLocked ? "uppercase bg-muted cursor-not-allowed" : "uppercase"}
         />
       </div>
 

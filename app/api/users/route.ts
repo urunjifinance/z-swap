@@ -47,15 +47,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "An account with this email, phone or NRC already exists." }, { status: 409 });
     }
 
+    // An invalid or inactive promo code (including one pre-filled from a
+    // promoter's referral link) never blocks registration — it's silently
+    // dropped so the user can still proceed with their signup.
     let referredByCode: string | null = null;
     if (data.promoCode) {
       const promoter = await prisma.promoter.findUnique({
         where: { code: data.promoCode },
       });
-      if (!promoter || promoter.status !== "ACTIVE") {
-        return NextResponse.json({ error: "Invalid or inactive promo code." }, { status: 400 });
+      if (promoter && promoter.status === "ACTIVE") {
+        referredByCode = promoter.code;
       }
-      referredByCode = promoter.code;
     }
 
     // The date is the source of truth; years are only typed in when no date is given.
