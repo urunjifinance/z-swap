@@ -36,10 +36,14 @@ export function RegistrationWizard() {
 
   // Pre-fill the promo code from a shared link like z-swap.com/register?ref=MUN10,
   // so a promoter's referrals don't have to type or remember the code themselves.
+  // The field is locked read-only whenever it arrives this way, so the
+  // attribution can't be edited or swapped out in the form. An invalid or
+  // expired code is still locked in the field — it's the server, not the UI,
+  // that silently drops attribution for a bad code without blocking signup.
   useEffect(() => {
     const ref = searchParams.get("ref");
     if (ref && !data.promoCode) {
-      update({ promoCode: ref.toUpperCase() });
+      update({ promoCode: ref.toUpperCase(), promoCodeLocked: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
