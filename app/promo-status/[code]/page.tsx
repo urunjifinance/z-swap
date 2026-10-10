@@ -2,7 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { ArrowLeftRight, Loader2, Gift } from "lucide-react";
+import { ArrowLeftRight, Loader2, Gift, CheckCircle2, Clock } from "lucide-react";
+
+interface Referral {
+  displayName: string;
+  signedUpAt: string;
+  verificationStatus: string;
+  paid: boolean;
+}
 
 interface Stats {
   name: string;
@@ -10,6 +17,7 @@ interface Stats {
   status: string;
   paidReferrals: number;
   totalReferrals: number;
+  referrals: Referral[];
 }
 
 export default function PromoStatusPage() {
@@ -89,6 +97,40 @@ export default function PromoStatusPage() {
                   Note: your code is currently inactive.
                 </p>
               )}
+
+              <div className="mt-8 text-left">
+                <h2 className="text-sm font-bold text-ink mb-3">People who came through you</h2>
+                {stats.referrals.length === 0 ? (
+                  <p className="text-sm text-slate-500">No signups through your code yet.</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {stats.referrals.map((r, i) => (
+                      <li
+                        key={i}
+                        className="flex items-center justify-between rounded-xl border border-border p-3"
+                      >
+                        <div>
+                          <p className="text-sm font-semibold text-ink">{r.displayName}</p>
+                          <p className="text-xs text-slate-500">
+                            Signed up {new Date(r.signedUpAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs">
+                          {r.paid ? (
+                            <span className="flex items-center gap-1 text-secondary-600 font-semibold">
+                              <CheckCircle2 className="h-3.5 w-3.5" /> Paid
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1 text-amber-600 font-semibold">
+                              <Clock className="h-3.5 w-3.5" /> {r.verificationStatus === "PENDING" ? "Pending" : r.verificationStatus}
+                            </span>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </>
           )}
         </div>
