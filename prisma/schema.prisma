@@ -94,6 +94,13 @@
     // Registration fee — paid immediately on registration, before admin
     // verification, rather than at swap-request time.
     registrationFeePaid  Boolean             @default(false)
+
+    // Payment reminder emails — set once each reminder is sent, so the
+    // reminder cron (app/api/cron/payment-reminders) never double-sends.
+    // Cleared implicitly by registrationFeePaid becoming true (no further
+    // reminders are sent once paid; the timestamps are left as a record).
+    paymentReminder1SentAt DateTime?
+    paymentReminder2SentAt DateTime?
   
     // Referral tracking — set once at registration, never changed after
     referredByCode       String?
