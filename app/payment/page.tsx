@@ -121,7 +121,8 @@ export default function PaymentPage() {
                   <div className="flex justify-between p-4 text-sm"><span className="text-slate-500">Date</span><span className="font-semibold text-ink">{formatDate(receipt.date)}</span></div>
                   <div className="flex justify-between p-4 text-sm"><span className="text-slate-500">Method</span><span className="font-semibold text-ink">{METHODS.find((m) => m.id === receipt.method)?.label}</span></div>
                 </div>
-                <Button className="mt-6 w-full" onClick={() => router.push("/dashboard")}>Go to dashboard</Button>
+                <Button className="mt-6 w-full" onClick={() => router.push(`/receipt/${encodeURIComponent(receipt.txnId)}`)}>View &amp; download receipt</Button>
+                <Button variant="outline" className="mt-3 w-full" onClick={() => router.push("/dashboard")}>Go to dashboard</Button>
               </CardContent>
             </Card>
           </div>

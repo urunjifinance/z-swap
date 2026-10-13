@@ -62,7 +62,9 @@ export function AdminPayments() {
               )}
               {payments.map((p) => (
                 <tr key={p.id} className="hover:bg-muted/50">
-                  <td className="px-4 py-3 font-mono text-xs text-slate-600">{p.txnId}</td>
+                  <td className="px-4 py-3 font-mono text-xs">
+                    <a href={`/receipt/${encodeURIComponent(p.txnId)}`} target="_blank" rel="noopener noreferrer" className="text-primary-700 hover:underline" title="Open receipt">{p.txnId}</a>
+                  </td>
                   <td className="px-4 py-3 font-semibold text-ink">{p.user.fullName}</td>
                   <td className="px-4 py-3 text-slate-600">{formatZMW(p.amount)}</td>
                   <td className="px-4 py-3 text-slate-600">{formatDate(p.createdAt)}</td>

@@ -109,6 +109,15 @@ export default async function DashboardPage() {
             </div>
           )}
 
+          {paidTxn && (
+            <div className="rounded-2xl border border-secondary-100 bg-secondary-50 p-4 text-sm text-secondary-700 flex items-center justify-between gap-4 flex-wrap">
+              <span>Registration fee paid. Receipt no. <span className="font-mono font-semibold">{paidTxn}</span></span>
+              <Link href={`/receipt/${encodeURIComponent(paidTxn)}`} className="font-bold text-secondary-700 hover:underline shrink-0">
+                View receipt →
+              </Link>
+            </div>
+          )}
+
           {user.registrationFeePaid && !verified && !rejected && (
             <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
               Your profile is pending admin verification. You can browse matches, but you&apos;ll need to be verified before posting a swap request.
