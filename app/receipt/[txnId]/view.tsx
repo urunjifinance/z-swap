@@ -94,7 +94,7 @@ export function ReceiptView({ r }: { r: ReceiptData }) {
         </div>
 
         <footer className="zr-footer">
-          <span>+260 979 423 178</span>
+          <span>+260 966 494 041</span>
           <span className="sep" />
           <span>support@z-swap.com</span>
           <span className="sep" />
