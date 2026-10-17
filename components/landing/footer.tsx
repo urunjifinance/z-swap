@@ -50,8 +50,8 @@ export function Footer() {
         <div>
           <h4 className="font-bold text-sm text-ink mb-3">Support</h4>
           <ul className="space-y-2 text-sm text-slate-500">
-            <li>support@zswap.zm</li>
-            <li>+260 21 1 234 567</li>
+            <li><a href="mailto:support@z-swap.com" className="hover:text-primary-600">support@z-swap.com</a></li>
+            <li><a href="tel:+260966494041" className="hover:text-primary-600">+260 966 494 041</a></li>
           </ul>
         </div>
       </div>
